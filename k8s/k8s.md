@@ -1,0 +1,1 @@
+Kubernetes manifests (Shared - All Members)
