@@ -1,6 +1,6 @@
 package com.se73.auth_service.model;
 
-public enum UserRole {
+public enum Role {
     PATIENT,
     DOCTOR,
     ADMIN
