@@ -2,6 +2,9 @@ package com.se73.auth_service.controller;
 
 import com.se73.auth_service.dto.AuthRequest;
 import com.se73.auth_service.dto.AuthResponse;
+import com.se73.auth_service.dto.RegisterRequest;
+import com.se73.auth_service.exception.UserNotFoundException;
+import com.se73.auth_service.exception.UsernameAlreadyExistsException;
 import com.se73.auth_service.model.Role;
 import com.se73.auth_service.model.User;
 import com.se73.auth_service.repository.UserRepository;
@@ -9,6 +12,7 @@ import com.se73.auth_service.service.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,14 +42,18 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "Register a new user", description = "Creates a new user with PATIENT role by default")
     @ApiResponse(responseCode = "200", description = "User registered successfully")
-    @ApiResponse(responseCode = "400", description = "Username or email already exists")
-    public ResponseEntity<?> register(@RequestBody User user) {  // or use DTO
-        if (userRepository.existsByUsername(user.getUsername())) {
-            return ResponseEntity.badRequest().body("Username already exists");
+    @ApiResponse(responseCode = "400", description = "Username or email already exists") // can be a validation error
+    @ApiResponse(responseCode = "409", description = "Username already exists")
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new UsernameAlreadyExistsException("Username already exists: " + request.getUsername());
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        // Default role if not provided
-        if (user.getRole() == null) user.setRole(Role.PATIENT);
+
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(request.getRole() != null ? request.getRole() : Role.PATIENT);
+
         userRepository.save(user);
 
         String token = jwtService.generateToken(user);
@@ -54,13 +62,15 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Login user", description = "Authenticates user and returns JWT token")
+    @ApiResponse(responseCode = "200", description = "Login successful")
+    @ApiResponse(responseCode = "401", description = "Invalid credentials")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found after authentication: " + request.getUsername()));
 
         String token = jwtService.generateToken(user);
         return ResponseEntity.ok(new AuthResponse(token, user.getRole().name()));
