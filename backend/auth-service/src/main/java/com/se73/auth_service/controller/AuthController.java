@@ -50,6 +50,7 @@ public class AuthController {
         }
 
         User user = new User();
+        user.setEmail(request.getEmail());
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole() != null ? request.getRole() : Role.PATIENT);
@@ -60,6 +61,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(token, user.getRole().name()));
     }
 
+    @CrossOrigin(origins = "http://localhost:5173")
     @PostMapping("/login")
     @Operation(summary = "Login user", description = "Authenticates user and returns JWT token")
     @ApiResponse(responseCode = "200", description = "Login successful")
