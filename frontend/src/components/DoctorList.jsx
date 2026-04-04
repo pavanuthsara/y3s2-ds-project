@@ -9,7 +9,7 @@ const DoctorList = () => {
           <li key={doctor.id} className="py-4">
             <h2 className="text-2xl font-bold">{doctor.name}</h2>
             <p className="text-gray-600">Specialty: {doctor.specialty}</p>
-            <h3 className="text-xl font-semibold mt-2">Schedules:</h3>
+            {/* <h3 className="text-xl font-semibold mt-2">Schedules:</h3>
             <ul className="list-disc list-inside pl-4">
               {doctor.schedules.map((schedule, index) => (
                 <li key={index} className="mt-1">
@@ -18,7 +18,8 @@ const DoctorList = () => {
                   <p>Time: {schedule.time}</p>
                 </li>
               ))}
-            </ul>
+            </ul> */}
+            <button>Show Availability</button>
           </li>
         ))}
       </ul>
