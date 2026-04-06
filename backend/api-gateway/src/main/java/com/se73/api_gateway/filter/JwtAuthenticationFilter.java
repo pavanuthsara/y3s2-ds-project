@@ -8,10 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class JwtAuthenticationFilter implements Filter {
@@ -62,54 +58,31 @@ public class JwtAuthenticationFilter implements Filter {
             return;
         }
 
-        // Extract identity from token and add headers for downstream services.
+        // Extract username from token and add to headers
         String username = jwtTokenProvider.getUsernameFromToken(token);
-        String role = jwtTokenProvider.getRoleFromToken(token);
-        Map<String, String> customHeaders = new HashMap<>();
-        customHeaders.put("X-User-Id", username);
-        if (role != null) {
-            customHeaders.put("X-User-Role", role);
-        }
-
-        HttpServletRequest wrappedRequest = new HeaderModifyingRequestWrapper(httpRequest, customHeaders);
+        // Create a wrapper to add header
+        HttpServletRequest wrappedRequest = new HeaderModifyingRequestWrapper(httpRequest, "X-User-Id", username);
 
         chain.doFilter(wrappedRequest, response);
     }
 }
 
 class HeaderModifyingRequestWrapper extends jakarta.servlet.http.HttpServletRequestWrapper {
-    private final Map<String, String> customHeaders;
+    private String headerName;
+    private String headerValue;
 
-    public HeaderModifyingRequestWrapper(HttpServletRequest request, Map<String, String> customHeaders) {
+    public HeaderModifyingRequestWrapper(HttpServletRequest request, String headerName, String headerValue) {
         super(request);
-        this.customHeaders = customHeaders;
+        this.headerName = headerName;
+        this.headerValue = headerValue;
     }
 
     @Override
     public String getHeader(String name) {
-        if (customHeaders.containsKey(name)) {
-            return customHeaders.get(name);
+        if (name.equals(headerName)) {
+            return headerValue;
         }
         return super.getHeader(name);
-    }
-
-    @Override
-    public Enumeration<String> getHeaders(String name) {
-        if (customHeaders.containsKey(name)) {
-            return Collections.enumeration(Collections.singletonList(customHeaders.get(name)));
-        }
-        return super.getHeaders(name);
-    }
-
-    @Override
-    public Enumeration<String> getHeaderNames() {
-        java.util.List<String> names = Collections.list(super.getHeaderNames());
-        for (String customHeaderName : customHeaders.keySet()) {
-            if (!names.contains(customHeaderName)) {
-                names.add(customHeaderName);
-            }
-        }
-        return Collections.enumeration(names);
     }
 }
 
