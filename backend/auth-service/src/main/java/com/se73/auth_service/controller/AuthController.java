@@ -33,7 +33,7 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest request) {
         try {
             User user = userService.registerUser(request);
-            String token = jwtTokenProvider.generateTokenFromUsername(user.getUsername());
+            String token = jwtTokenProvider.generateTokenFromUser(user);
             AuthResponse response = new AuthResponse(token, user.getUsername(), user.getEmail(), user.getRole().name());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
