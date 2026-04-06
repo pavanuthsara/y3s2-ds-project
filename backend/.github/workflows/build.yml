@@ -1,0 +1,27 @@
+name: Build Java Services
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Build api-gateway
+      run: mvn -B package --file api-gateway/pom.xml
+
+    - name: Build auth-service
+      run: mvn -B package --file auth-service/pom.xml
