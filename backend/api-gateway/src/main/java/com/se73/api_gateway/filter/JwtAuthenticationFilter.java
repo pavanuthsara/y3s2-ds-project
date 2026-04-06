@@ -26,7 +26,7 @@ public class JwtAuthenticationFilter implements Filter {
         
         // Routes that don't require authentication
         String path = httpRequest.getRequestURI();
-        if (path.startsWith("/api/auth/") || path.startsWith("/health") || path.startsWith("/actuator")) {
+        if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/register") || path.startsWith("/health") || path.startsWith("/actuator")) {
             chain.doFilter(request, response);
             return;
         }
