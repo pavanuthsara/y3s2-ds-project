@@ -12,7 +12,7 @@ public class ProxyController {
     @Autowired
     private RestTemplate restTemplate;
 
-    private static final String AUTH_SERVICE_URL = "http://localhost:8081/api/auth";
+    private static final String AUTH_SERVICE_URL = "http://auth-service:8081/api/auth";
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
