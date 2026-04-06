@@ -1,0 +1,9 @@
+com\se73\doctor_service\controller\DoctorAvailabilityController$ErrorResponse.class
+com\se73\doctor_service\dto\AvailabilitySlotResponse.class
+com\se73\doctor_service\repository\DoctorAvailabilityRepository.class
+com\se73\doctor_service\dto\AvailabilitySlotRequest.class
+com\se73\doctor_service\controller\DoctorAvailabilityController.class
+com\se73\doctor_service\DoctorServiceApplication.class
+com\se73\doctor_service\model\DoctorAvailabilitySlot.class
+com\se73\doctor_service\dto\SetDoctorAvailabilityRequest.class
+com\se73\doctor_service\service\DoctorAvailabilityService.class

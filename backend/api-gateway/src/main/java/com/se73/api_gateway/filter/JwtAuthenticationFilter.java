@@ -60,8 +60,10 @@ public class JwtAuthenticationFilter implements Filter {
 
         // Extract username from token and add to headers
         String username = jwtTokenProvider.getUsernameFromToken(token);
-        // Create a wrapper to add header
+        String role = jwtTokenProvider.getRoleFromToken(token);
+
         HttpServletRequest wrappedRequest = new HeaderModifyingRequestWrapper(httpRequest, "X-User-Id", username);
+        wrappedRequest = new HeaderModifyingRequestWrapper(wrappedRequest, "X-User-Role", role);
 
         chain.doFilter(wrappedRequest, response);
     }
