@@ -1,8 +1,6 @@
 package com.se73.auth_service.controller;
 
-import com.se73.auth_service.dto.AuthResponse;
-import com.se73.auth_service.dto.LoginRequest;
-import com.se73.auth_service.dto.RegisterRequest;
+import com.se73.auth_service.dto.*;
 import com.se73.auth_service.model.User;
 import com.se73.auth_service.security.JwtTokenProvider;
 import com.se73.auth_service.service.UserService;
@@ -31,34 +29,32 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest request) {
-        try {
-            User user = userService.registerUser(request);
-            String token = jwtTokenProvider.generateTokenFromUsername(user.getUsername());
-            AuthResponse response = new AuthResponse(token, user.getUsername(), user.getEmail(), user.getRole().name());
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
-        }
+        // If userService throws a RuntimeException (e.g., "User already exists"),
+        // the GlobalExceptionHandler handles it automatically.
+        User user = userService.registerUser(request);
+        String token = jwtTokenProvider.generateTokenFromUsername(user.getUsername());
+        AuthResponse response = new AuthResponse(token, user.getUsername(), user.getEmail(), user.getRole().name());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest request) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-            );
+        // If authentication fails, BadCredentialsException is thrown.
+        // The GlobalExceptionHandler will catch it and return your custom message.
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+        );
 
-            String token = jwtTokenProvider.generateToken(authentication);
-            User user = userService.findByUsername(request.getUsername());
-            AuthResponse response = new AuthResponse(token, user.getUsername(), user.getEmail(), user.getRole().name());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid credentials"));
-        }
+        String token = jwtTokenProvider.generateToken(authentication);
+        User user = userService.findByUsername(request.getUsername());
+        AuthResponse response = new AuthResponse(token, user.getUsername(), user.getEmail(), user.getRole().name());
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/validate")
-    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<TokenValidationResponse> validateToken(@RequestHeader("Authorization") String token) {
         try {
             if (token.startsWith("Bearer ")) {
                 token = token.substring(7);
@@ -76,98 +72,18 @@ public class AuthController {
     }
 
     @GetMapping("/user/{username}")
-    public ResponseEntity<?> getUser(@PathVariable String username) {
-        try {
-            User user = userService.findByUsername(username);
-            return ResponseEntity.ok(new UserResponse(user.getId(), user.getUsername(), user.getEmail(), 
-                    user.getFirstName(), user.getLastName(), user.getRole().name()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("User not found"));
-        }
-    }
+    public ResponseEntity<UserResponse> getUser(@PathVariable String username) {
+        // 1. Business logic call (throws exception if not found)
+        User user = userService.findByUsername(username);
 
-    // Inner classes for responses
-    public static class ErrorResponse {
-        private String message;
-
-        public ErrorResponse(String message) {
-            this.message = message;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-    }
-
-    public static class TokenValidationResponse {
-        private boolean valid;
-        private String username;
-
-        public TokenValidationResponse(boolean valid, String username) {
-            this.valid = valid;
-            this.username = username;
-        }
-
-        public boolean isValid() {
-            return valid;
-        }
-
-        public void setValid(boolean valid) {
-            this.valid = valid;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-    }
-
-    public static class UserResponse {
-        private Long id;
-        private String username;
-        private String email;
-        private String firstName;
-        private String lastName;
-        private String role;
-
-        public UserResponse(Long id, String username, String email, String firstName, String lastName, String role) {
-            this.id = id;
-            this.username = username;
-            this.email = email;
-            this.firstName = firstName;
-            this.lastName = lastName;
-            this.role = role;
-        }
-
-        public Long getId() {
-            return id;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public String getEmail() {
-            return email;
-        }
-
-        public String getFirstName() {
-            return firstName;
-        }
-
-        public String getLastName() {
-            return lastName;
-        }
-
-        public String getRole() {
-            return role;
-        }
+        // 2. Map and return success
+        return ResponseEntity.ok(new UserResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getRole().name()
+        ));
     }
 }
