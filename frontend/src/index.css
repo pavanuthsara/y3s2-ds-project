@@ -1,62 +1,39 @@
-:root {
-  --text: #50656a;
-  --text-h: #183239;
-  --bg: #f6efe5;
-  --accent: #b85425;
-  --accent-strong: #8d3f1d;
-  --accent-soft: rgba(184, 84, 37, 0.12);
-  --panel-muted: rgba(255, 248, 240, 0.88);
-  --sans: 'Segoe UI', 'Trebuchet MS', system-ui, sans-serif;
-  --heading: Georgia, 'Times New Roman', serif;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  font: 17px/1.5 var(--sans);
-  letter-spacing: 0.01em;
-  color: var(--text);
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.8), transparent 35%),
-    linear-gradient(135deg, #f8f1e6 0%, #f1e4d2 45%, #e8d6c7 100%);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+@layer base {
+  :root {
+    @apply bg-gradient-to-br from-[#f8f1e6] via-[#f1e4d2] to-[#e8d6c7];
+  }
 
-* {
-  box-sizing: border-box;
-}
+  body {
+    @apply m-0 min-w-80 font-sans text-text leading-relaxed tracking-wide antialiased;
+  }
 
-body {
-  margin: 0;
-  min-width: 320px;
-}
+  #root {
+    @apply min-h-screen;
+  }
 
-#root {
-  min-height: 100vh;
-}
+  h1,
+  h2 {
+    @apply m-0 font-serif font-bold text-text-h;
+  }
 
-h1,
-h2 {
-  margin: 0;
-  font-family: var(--heading);
-  color: var(--text-h);
-  font-weight: 700;
-}
+  h1 {
+    @apply text-6xl leading-[0.98] mb-[18px];
+  }
 
-h1 {
-  font-size: clamp(2.7rem, 5vw, 4.8rem);
-  line-height: 0.98;
-  margin-bottom: 18px;
-}
+  h2 {
+    @apply text-2xl;
+  }
 
-h2 {
-  font-size: clamp(1.4rem, 2.8vw, 2rem);
-}
+  p {
+    @apply m-0;
+  }
 
-p {
-  margin: 0;
-}
-
-button,
-input {
-  font: inherit;
+  button,
+  input {
+    @apply font-inherit;
+  }
 }
