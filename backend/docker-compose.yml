@@ -55,6 +55,47 @@ services:
     networks:
       - dsproject-network
 
+  # ──────────────────────────────
+  # PATIENT SERVICE
+  # ──────────────────────────────
+  patient-postgres:
+    image: postgres:16-alpine
+    container_name: patient-postgres
+    environment:
+      POSTGRES_DB: patientdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - patient_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  patient-service:
+    build:
+      context: ./patient-service
+      dockerfile: Dockerfile
+    container_name: patient-service
+    expose:
+      - "8081"
+    environment:
+      DB_HOST: patient-postgres
+      DB_PORT: 5432
+      DB_NAME: patientdb
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      patient-postgres:
+        condition: service_healthy
+    networks:
+      - dsproject-network
+
 # ──────────────────────────────
 # SHARED NETWORK & VOLUMES
 # ──────────────────────────────
@@ -64,3 +105,4 @@ networks:
 
 volumes:
   auth_postgres_data:
+  patient_postgres_data:

@@ -1,6 +1,5 @@
 package com.se73.api_gateway.controller;
 
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -15,19 +14,19 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("/api/auth")
 public class ProxyController {
 
-    private final RestTemplate restTemplate;
-    private final String authServiceUrl;
+    @Autowired
+    private RestTemplate restTemplate;
 
     private static final String AUTH_SERVICE_URL = "http://auth-service:8081/api/auth";
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        return restTemplate.postForEntity(authServiceUrl + "/login", request, Object.class);
+        return restTemplate.postForEntity(AUTH_SERVICE_URL + "/login", request, Object.class);
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        return restTemplate.postForEntity(authServiceUrl + "/register", request, Object.class);
+        return restTemplate.postForEntity(AUTH_SERVICE_URL + "/register", request, Object.class);
     }
 
     @GetMapping("/validate")
@@ -69,6 +68,10 @@ public class ProxyController {
 
         // We use HttpEntity to wrap the headers
         HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        try {
+            // 3. MUST use exchange() instead of getForEntity() so we can pass the headers
+            ResponseEntity<String> response = restTemplate.exchange(
                     "http://auth-service:8081/api/auth/user/" + username,
                     HttpMethod.GET,
                     entity,
@@ -94,4 +97,5 @@ public class ProxyController {
         public String firstName;
         public String lastName;
         public String role;
+    }
 }
