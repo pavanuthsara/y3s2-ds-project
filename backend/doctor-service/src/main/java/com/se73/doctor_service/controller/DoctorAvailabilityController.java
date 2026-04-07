@@ -119,15 +119,6 @@ public class DoctorAvailabilityController {
 		);
 	}
 
-	private static class ErrorResponse {
-		private final String message;
-
-		private ErrorResponse(String message) {
-			this.message = message;
-		}
-
-		public String getMessage() {
-			return message;
-		}
+	private record ErrorResponse(String message) {
 	}
 }
