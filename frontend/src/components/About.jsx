@@ -1,8 +1,12 @@
 const About = () => {
   return (
-    <div>
-      <h1 className="text-3xl font-bold">About</h1>
-    </div>
+    <section className="simple-page">
+      <h1>About</h1>
+      <p>
+        This app is organized by feature modules to reduce merge conflicts and keep ownership clear.
+        Doctor availability is implemented as a self-contained frontend module.
+      </p>
+    </section>
   );
 };
 
