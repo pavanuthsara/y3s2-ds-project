@@ -26,7 +26,7 @@ public class JwtAuthenticationFilter implements Filter {
         
         // Routes that don't require authentication
         String path = httpRequest.getRequestURI();
-        if (path.startsWith("/api/auth/") || path.startsWith("/health") || path.startsWith("/actuator")) {
+        if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/register") || path.startsWith("/health") || path.startsWith("/actuator")) {
             chain.doFilter(request, response);
             return;
         }
@@ -60,8 +60,10 @@ public class JwtAuthenticationFilter implements Filter {
 
         // Extract username from token and add to headers
         String username = jwtTokenProvider.getUsernameFromToken(token);
-        // Create a wrapper to add header
+        String role = jwtTokenProvider.getRoleFromToken(token);
+
         HttpServletRequest wrappedRequest = new HeaderModifyingRequestWrapper(httpRequest, "X-User-Id", username);
+        wrappedRequest = new HeaderModifyingRequestWrapper(wrappedRequest, "X-User-Role", role);
 
         chain.doFilter(wrappedRequest, response);
     }
