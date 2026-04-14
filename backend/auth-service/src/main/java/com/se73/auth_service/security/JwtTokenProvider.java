@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import com.se73.auth_service.model.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -25,28 +26,54 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
-        return Jwts.builder()
+        String role = authentication.getAuthorities().stream()
+            .map(auth -> auth.getAuthority())
+            .findFirst()
+            .orElse(null);
+
+        io.jsonwebtoken.JwtBuilder builder = Jwts.builder()
                 .subject(authentication.getName())
                 .claim("authorities", authentication.getAuthorities().stream()
                         .map(auth -> auth.getAuthority())
-                        .toList())
-                .issuedAt(now)
-                .expiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact();
+                .toList())
+            .issuedAt(now)
+            .expiration(expiryDate);
+
+        if (role != null) {
+            builder.claim("role", role);
+        }
+
+        return builder.signWith(key, SignatureAlgorithm.HS512)
+            .compact();
     }
 
     public String generateTokenFromUsername(String username) {
+        return generateTokenFromUsernameAndRole(username, null);
+        }
+
+        public String generateTokenFromUser(User user) {
+        return generateTokenFromUsernameAndRole(user.getUsername(), user.getRole().name());
+        }
+
+        private String generateTokenFromUsernameAndRole(String username, String role) {
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
-        return Jwts.builder()
+        String authority = role == null ? null : "ROLE_" + role;
+
+        io.jsonwebtoken.JwtBuilder builder = Jwts.builder()
                 .subject(username)
                 .issuedAt(now)
-                .expiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact();
+            .expiration(expiryDate);
+
+        if (authority != null) {
+            builder.claim("authorities", java.util.List.of(authority));
+            builder.claim("role", authority);
+        }
+
+        return builder.signWith(key, SignatureAlgorithm.HS512)
+            .compact();
     }
 
     public String getUsernameFromToken(String token) {

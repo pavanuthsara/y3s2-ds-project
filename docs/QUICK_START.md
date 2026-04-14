@@ -1,5 +1,8 @@
 # Quick Start Guide - Testing API Gateway & Auth Service
 
+## Additional Guide
+- For doctor availability scheduling tests in Postman, see `docs/DOCTOR_AVAILABILITY_POSTMAN_TEST_GUIDE.md`.
+
 ## Prerequisites
 - PostgreSQL running on localhost:5432
 - Java 17+ installed
