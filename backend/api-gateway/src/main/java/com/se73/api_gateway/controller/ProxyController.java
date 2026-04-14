@@ -1,5 +1,6 @@
 package com.se73.api_gateway.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -7,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,44 +16,38 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("/api/auth")
 public class ProxyController {
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
+    private final String authServiceUrl;
 
-    private static final String AUTH_SERVICE_URL = "http://auth-service:8081/api/auth";
+    public ProxyController(RestTemplate restTemplate, @Value("${services.auth.base-url}") String authServiceUrl) {
+        this.restTemplate = restTemplate;
+        this.authServiceUrl = authServiceUrl;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        return restTemplate.postForEntity(AUTH_SERVICE_URL + "/login", request, Object.class);
+        return restTemplate.postForEntity(authServiceUrl + "/login", request, Object.class);
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        return restTemplate.postForEntity(AUTH_SERVICE_URL + "/register", request, Object.class);
+        return restTemplate.postForEntity(authServiceUrl + "/register", request, Object.class);
     }
 
     @GetMapping("/validate")
-    public ResponseEntity<?> validate(HttpServletRequest request) {
-        // 1. Grab the token from the client's request to the gateway
-        String authHeader = request.getHeader("Authorization");
-
-        // 2. Attach it to the outgoing request
-        HttpHeaders headers = new HttpHeaders();
-        if (authHeader != null) {
-            headers.set("Authorization", authHeader);
-        }
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        // 3. Send it to the auth-service
+    public ResponseEntity<?> validate(@RequestHeader("Authorization") String authHeader) {
         try {
-            ResponseEntity<String> response = restTemplate.exchange(
-                "http://auth-service:8081/api/auth/validate",
-                HttpMethod.GET,
-                entity,
-                String.class
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", authHeader);
+
+            return restTemplate.exchange(
+                    authServiceUrl + "/validate",
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    Object.class
             );
-            return response;
-        } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        } catch (HttpStatusCodeException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getResponseBodyAsString());
         }
     }
 
