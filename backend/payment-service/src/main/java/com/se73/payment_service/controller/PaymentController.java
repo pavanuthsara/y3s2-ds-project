@@ -58,9 +58,9 @@ public class PaymentController {
             @Valid @RequestBody PaymentConfirmRequest request) {
 
         try {
-            log.info("Payment confirmation request received for intent: {}", request.getPaymentIntentId());
+            log.info("Payment confirmation request received for transaction: {}", request.getTransactionId());
 
-            PaymentResponse response = paymentService.confirmPayment(request.getPaymentIntentId());
+            PaymentResponse response = paymentService.confirmPayment(request.getTransactionId(), request.getPaymentMethodId());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
