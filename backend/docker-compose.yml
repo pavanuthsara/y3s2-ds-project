@@ -114,24 +114,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # AI SYMPTOM CHECKER SERVICE
-  ai-symptom-checker:
-    build:
-      context: ./ai-symptom-checker-service
-      dockerfile: Dockerfile
-    container_name: ai-symptom-checker
-    ports:
-      - "8087:8087"
-    environment:
-      GEMINI_API_KEY: AQ.Ab8RN6IDXVyoozfkIVAQ_4ChgSxEaqiUF7QbOkxAb_doFadr4g
-    networks:
-      - dsproject-network
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8087/actuator/health || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-
 networks:
   dsproject-network:
     driver: bridge
