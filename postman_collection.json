@@ -248,6 +248,372 @@
         }
       ],
       "description": "Requests routed through API Gateway (Port 8080) to Auth Service (Port 8081)"
+    },
+    {
+      "name": "AI Symptom Checker Service (Port 8087)",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8087/api/symptoms/health",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8087",
+              "path": [
+                "api",
+                "symptoms",
+                "health"
+              ]
+            },
+            "description": "Check if AI Symptom Checker service is running"
+          },
+          "response": []
+        },
+        {
+          "name": "Service Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8087/api/symptoms/info",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8087",
+              "path": [
+                "api",
+                "symptoms",
+                "info"
+              ]
+            },
+            "description": "Get information about the AI Symptom Checker service"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze - Cold/Flu Symptoms",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": [\"fever\", \"cough\", \"sore throat\", \"headache\"],\n  \"duration\": \"3-7 days\",\n  \"severity\": \"moderate\",\n  \"ageGroup\": \"adult\",\n  \"additionalInfo\": \"Recently exposed to sick colleague at work\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8087/api/symptoms/analyze",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8087",
+              "path": [
+                "api",
+                "symptoms",
+                "analyze"
+              ]
+            },
+            "description": "Analyze cold/flu-like symptoms"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze - Respiratory Issues",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": [\"chest pain\", \"shortness of breath\", \"cough\"],\n  \"duration\": \"1-2 weeks\",\n  \"severity\": \"severe\",\n  \"ageGroup\": \"adult\",\n  \"additionalInfo\": \"Smoker with history of asthma\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8087/api/symptoms/analyze",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8087",
+              "path": [
+                "api",
+                "symptoms",
+                "analyze"
+              ]
+            },
+            "description": "Analyze respiratory issues - WARNING SYMPTOMS"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze - Digestive Issues",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": [\"nausea\", \"diarrhea\", \"stomach cramps\", \"vomiting\"],\n  \"duration\": \"1-2 days\",\n  \"severity\": \"moderate\",\n  \"ageGroup\": \"adult\",\n  \"additionalInfo\": \"Ate something unusual yesterday\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8087/api/symptoms/analyze",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8087",
+              "path": [
+                "api",
+                "symptoms",
+                "analyze"
+              ]
+            },
+            "description": "Analyze digestive/gastrointestinal issues"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze - Allergic Reaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": [\"runny nose\", \"sneezing\", \"itchy eyes\", \"rash\"],\n  \"duration\": \"few hours to days\",\n  \"severity\": \"mild\",\n  \"ageGroup\": \"adult\",\n  \"additionalInfo\": \"Spring season, exposure to pollen\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8087/api/symptoms/analyze",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8087",
+              "path": [
+                "api",
+                "symptoms",
+                "analyze"
+              ]
+            },
+            "description": "Analyze potential allergic reaction symptoms"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze - Headache/Migraine",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": [\"severe headache\", \"sensitivity to light\", \"nausea\", \"dizziness\"],\n  \"duration\": \"several hours\",\n  \"severity\": \"severe\",\n  \"ageGroup\": \"adult\",\n  \"additionalInfo\": \"History of migraines, high stress today\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8087/api/symptoms/analyze",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8087",
+              "path": [
+                "api",
+                "symptoms",
+                "analyze"
+              ]
+            },
+            "description": "Analyze headache and potential migraine symptoms"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze - Joint Pain/Inflammation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": [\"joint pain\", \"inflammation\", \"stiffness\", \"fatigue\"],\n  \"duration\": \"1-2 weeks\",\n  \"severity\": \"moderate\",\n  \"ageGroup\": \"adult\",\n  \"additionalInfo\": \"Morning stiffness, affects multiple joints\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8087/api/symptoms/analyze",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8087",
+              "path": [
+                "api",
+                "symptoms",
+                "analyze"
+              ]
+            },
+            "description": "Analyze joint pain and inflammatory symptoms"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze - Anxiety/Mental Health",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": [\"chest tightness\", \"rapid heartbeat\", \"shortness of breath\", \"trembling\"],\n  \"duration\": \"comes and goes\",\n  \"severity\": \"moderate\",\n  \"ageGroup\": \"adult\",\n  \"additionalInfo\": \"Feels worse during stressful situations\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8087/api/symptoms/analyze",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8087",
+              "path": [
+                "api",
+                "symptoms",
+                "analyze"
+              ]
+            },
+            "description": "Analyze anxiety and stress-related symptoms"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze - Fatigue/Low Energy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": [\"extreme fatigue\", \"low energy\", \"weakness\", \"difficulty concentrating\"],\n  \"duration\": \"1-2 weeks\",\n  \"severity\": \"moderate\",\n  \"ageGroup\": \"adult\",\n  \"additionalInfo\": \"Not getting enough sleep, demanding work project\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8087/api/symptoms/analyze",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8087",
+              "path": [
+                "api",
+                "symptoms",
+                "analyze"
+              ]
+            },
+            "description": "Analyze fatigue and low energy symptoms"
+          },
+          "response": []
+        }
+      ],
+      "description": "AI Symptom Checker Service endpoints (Port 8087) - Analyze symptoms and get preliminary health suggestions"
+    },
+    {
+      "name": "AI Symptom Checker via Gateway (Port 8080)",
+      "item": [
+        {
+          "name": "Health Check via Gateway",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/symptoms/health",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "symptoms",
+                "health"
+              ]
+            },
+            "description": "Check AI Symptom Checker health through API Gateway"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze via Gateway - Cold/Flu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": [\"fever\", \"cough\", \"headache\"],\n  \"duration\": \"3-7 days\",\n  \"severity\": \"moderate\",\n  \"ageGroup\": \"adult\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/symptoms/analyze",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "symptoms",
+                "analyze"
+              ]
+            },
+            "description": "Analyze symptoms through API Gateway (Port 8080) - forwards to AI Symptom Checker (Port 8087)"
+          },
+          "response": []
+        }
+      ],
+      "description": "AI Symptom Checker requests routed through API Gateway (Port 8080)"
     }
   ],
   "variable": [
