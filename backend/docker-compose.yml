@@ -42,8 +42,8 @@ services:
       context: ./auth-service
       dockerfile: Dockerfile
     container_name: auth-service
-    expose:
-      - "8081"
+    ports:
+      - "8081:8081"
     environment:
       DB_HOST: auth-postgres
       DB_PORT: 5432
@@ -64,10 +64,10 @@ services:
       context: ./ai-symptom-checker-service
       dockerfile: Dockerfile
     container_name: ai-symptom-checker
-    expose:
-      - "8087"
+    ports:
+      - "8087:8087"
     environment:
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-your-gemini-api-key-here}
+      GEMINI_API_KEY: AQ.Ab8RN6IDXVyoozfkIVAQ_4ChgSxEaqiUF7QbOkxAb_doFadr4g
     networks:
       - dsproject-network
 
