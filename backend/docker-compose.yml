@@ -1,7 +1,5 @@
 services:
-  # ──────────────────────────────
   # API GATEWAY
-  # ──────────────────────────────
   api-gateway:
     build:
       context: ./api-gateway
@@ -9,15 +7,25 @@ services:
     container_name: api-gateway
     ports:
       - "8080:8080"
+    environment:
+      AUTH_SERVICE_BASE_URL: http://auth-service:8081/api/auth
+      PATIENT_SERVICE_BASE_URL: http://patient-service:8082/api/patients
+      SYMPTOM_CHECKER_SERVICE_BASE_URL: http://ai-symptom-checker:8087/api/symptoms
+      APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
     depends_on:
-      - auth-service
-      - ai-symptom-checker
+      auth-service:
+        condition: service_healthy
+      patient-service:
+        condition: service_healthy
     networks:
       - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
-  # ──────────────────────────────
   # AUTH SERVICE
-  # ──────────────────────────────
   auth-postgres:
     image: postgres:16-alpine
     container_name: auth-postgres
@@ -50,15 +58,63 @@ services:
       DB_NAME: authdb
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
+      APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
     depends_on:
       auth-postgres:
         condition: service_healthy
     networks:
       - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
-  # ──────────────────────────────
+  # PATIENT SERVICE
+  patient-postgres:
+    image: postgres:16-alpine
+    container_name: patient-postgres
+    environment:
+      POSTGRES_DB: patient_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - patient_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  patient-service:
+    build:
+      context: ./patient-service
+      dockerfile: Dockerfile
+    container_name: patient-service
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://patient-postgres:5432/patient_service_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+    depends_on:
+      patient-postgres:
+        condition: service_healthy
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
   # AI SYMPTOM CHECKER SERVICE
-  # ──────────────────────────────
   ai-symptom-checker:
     build:
       context: ./ai-symptom-checker-service
@@ -70,13 +126,16 @@ services:
       GEMINI_API_KEY: AQ.Ab8RN6IDXVyoozfkIVAQ_4ChgSxEaqiUF7QbOkxAb_doFadr4g
     networks:
       - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8087/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
-# ──────────────────────────────
-# SHARED NETWORK & VOLUMES
-# ──────────────────────────────
 networks:
   dsproject-network:
     driver: bridge
 
 volumes:
   auth_postgres_data:
+  patient_postgres_data:
