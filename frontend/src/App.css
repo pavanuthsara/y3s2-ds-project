@@ -1,14 +1,18 @@
-@layer components {
-  .eyebrow,
-  .card-label {
-    @apply m-0 mb-3 uppercase tracking-widest text-sm text-accent-strong;
-  }
+.eyebrow,
+.card-label {
+  margin: 0;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 14px;
+  color: #8d3f1d;
+}
 
-  .form-message {
-    @apply mt-4 text-teal-700;
-  }
+.form-message {
+  margin-top: 1rem;
+  color: #0d9488;
+}
 
-  .form-message.error {
-    @apply text-red-600;
-  }
+.form-message.error {
+  color: #dc2626;
 }
