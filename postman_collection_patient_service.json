@@ -1,0 +1,537 @@
+{
+  "info": {
+    "_postman_id": "healthcare-platform-patient-service",
+    "name": "Healthcare Platform - Patient Service",
+    "description": "Complete testing collection for Patient Service API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🔑 Authentication",
+      "description": "Get JWT token from Auth Service",
+      "item": [
+        {
+          "name": "Register New Patient User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    pm.collectionVariables.set('username', jsonData.username);",
+                  "    console.log('✅ JWT Token saved: ' + jsonData.token.substring(0, 20) + '...');",
+                  "} else {",
+                  "    console.log('❌ Registration failed');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_patient_{{$timestamp}}\",\n  \"email\": \"john{{$timestamp}}@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"role\": \"PATIENT\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/auth/register",
+              "host": [
+                "http://localhost:8081"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Register a new patient user and automatically save JWT token"
+          },
+          "response": []
+        },
+        {
+          "name": "Login Patient User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    console.log('✅ JWT Token saved');",
+                  "} else {",
+                  "    console.log('❌ Login failed');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8081/api/auth/login",
+              "host": [
+                "http://localhost:8081"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login with existing patient credentials"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "✅ Working Endpoints",
+      "description": "Test the 3 endpoints that are currently implemented",
+      "item": [
+        {
+          "name": "1️⃣ Create Patient Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 CREATED', function () {",
+                  "    pm.expect(pm.response.code).to.eql(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has patient data', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('username');",
+                  "    pm.expect(jsonData).to.have.property('firstName');",
+                  "    pm.collectionVariables.set('patient_id', jsonData.id);",
+                  "    console.log('✅ Patient ID saved: ' + jsonData.id);",
+                  "});",
+                  "",
+                  "pm.test('Profile data matches request', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.firstName).to.eql('John');",
+                  "    pm.expect(jsonData.lastName).to.eql('Doe');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+94701234567\",\n  \"address\": \"123 Main Street, Colombo 7\",\n  \"dateOfBirth\": \"1995-05-15\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8082/api/patients",
+              "host": [
+                "http://localhost:8082"
+              ],
+              "path": [
+                "api",
+                "patients"
+              ]
+            },
+            "description": "Create a new patient profile. JWT token required."
+          },
+          "response": []
+        },
+        {
+          "name": "2️⃣ Get Your Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.expect(pm.response.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains profile data', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('firstName');",
+                  "    pm.expect(jsonData).to.have.property('phone');",
+                  "    pm.expect(jsonData.firstName).to.eql('John');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8082/api/patients/me",
+              "host": [
+                "http://localhost:8082"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "me"
+              ]
+            },
+            "description": "Retrieve your own patient profile"
+          },
+          "response": []
+        },
+        {
+          "name": "3️⃣ Update Your Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.expect(pm.response.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test('Profile updated correctly', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.lastName).to.eql('Smith');",
+                  "    pm.expect(jsonData.phone).to.eql('+94709876543');",
+                  "    pm.expect(jsonData.address).to.eql('456 New Avenue, Kandy');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Smith\",\n  \"phone\": \"+94709876543\",\n  \"address\": \"456 New Avenue, Kandy\",\n  \"dateOfBirth\": \"1995-05-15\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8082/api/patients/me",
+              "host": [
+                "http://localhost:8082"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "me"
+              ]
+            },
+            "description": "Update your patient profile information"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "❌ Error Scenarios",
+      "description": "Test error handling and validation",
+      "item": [
+        {
+          "name": "Missing Authorization Header",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401 UNAUTHORIZED', function () {",
+                  "    pm.expect(pm.response.code).to.eql(401);",
+                  "});",
+                  "",
+                  "pm.test('Error message is present', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/api/patients/me",
+              "host": [
+                "http://localhost:8082"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "me"
+              ]
+            },
+            "description": "Test request without authorization header - should return 401"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid JWT Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401 UNAUTHORIZED', function () {",
+                  "    pm.expect(pm.response.code).to.eql(401);",
+                  "});",
+                  "",
+                  "pm.test('Returns error message', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include('Invalid');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid.token.here"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8082/api/patients/me",
+              "host": [
+                "http://localhost:8082"
+              ],
+              "path": [
+                "api",
+                "patients",
+                "me"
+              ]
+            },
+            "description": "Test with invalid JWT token - should return 401"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Profile - Missing Required Fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 BAD REQUEST', function () {",
+                  "    pm.expect(pm.response.code).to.eql(400);",
+                  "});",
+                  "",
+                  "pm.test('Returns validation error', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"\",\n  \"lastName\": \"\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8082/api/patients",
+              "host": [
+                "http://localhost:8082"
+              ],
+              "path": [
+                "api",
+                "patients"
+              ]
+            },
+            "description": "Test creating profile with empty required fields - should return 400"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Profile - Already Exists",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 BAD REQUEST', function () {",
+                  "    pm.expect(pm.response.code).to.eql(400);",
+                  "});",
+                  "",
+                  "pm.test('Returns duplicate error', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include('already exists');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Another\",\n  \"lastName\": \"User\",\n  \"phone\": \"+94701234567\",\n  \"address\": \"Another Address\",\n  \"dateOfBirth\": \"1990-01-01\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8082/api/patients",
+              "host": [
+                "http://localhost:8082"
+              ],
+              "path": [
+                "api",
+                "patients"
+              ]
+            },
+            "description": "Test creating profile when one already exists - should return 400"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Health Checks",
+      "description": "Verify services are running",
+      "item": [
+        {
+          "name": "Patient Service Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8082/actuator/health",
+              "host": [
+                "http://localhost:8082"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            },
+            "description": "Check if Patient Service is running"
+          },
+          "response": []
+        },
+        {
+          "name": "Auth Service Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8081/actuator/health",
+              "host": [
+                "http://localhost:8081"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            },
+            "description": "Check if Auth Service is running"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url_auth",
+      "value": "http://localhost:8081",
+      "type": "string",
+      "description": "Base URL for Auth Service"
+    },
+    {
+      "key": "base_url_patient",
+      "value": "http://localhost:8082",
+      "type": "string",
+      "description": "Base URL for Patient Service"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string",
+      "description": "JWT token - automatically filled after login/register"
+    },
+    {
+      "key": "username",
+      "value": "",
+      "type": "string",
+      "description": "Username - automatically filled after registration"
+    },
+    {
+      "key": "patient_id",
+      "value": "",
+      "type": "string",
+      "description": "Patient ID - automatically filled after profile creation"
+    }
+  ]
+}
