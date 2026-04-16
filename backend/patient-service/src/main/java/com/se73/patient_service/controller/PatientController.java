@@ -3,13 +3,21 @@ package com.se73.patient_service.controller;
 import com.se73.patient_service.dto.CreatePatientProfileRequest;
 import com.se73.patient_service.dto.PatientProfileResponse;
 import com.se73.patient_service.dto.UpdatePatientProfileRequest;
+import com.se73.patient_service.dto.MedicalReportResponse;
 import com.se73.patient_service.model.PatientProfile;
+import com.se73.patient_service.model.MedicalReport;
 import com.se73.patient_service.security.JwtTokenProvider;
 import com.se73.patient_service.service.PatientProfileService;
+import com.se73.patient_service.service.FileStorageService;
+import com.se73.patient_service.repository.MedicalReportRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/patients")
@@ -18,10 +26,15 @@ public class PatientController {
 
     private final PatientProfileService patientProfileService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final FileStorageService fileStorageService;
+    private final MedicalReportRepository medicalReportRepository;
 
-    public PatientController(PatientProfileService patientProfileService, JwtTokenProvider jwtTokenProvider) {
+    public PatientController(PatientProfileService patientProfileService, JwtTokenProvider jwtTokenProvider,
+                           FileStorageService fileStorageService, MedicalReportRepository medicalReportRepository) {
         this.patientProfileService = patientProfileService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.fileStorageService = fileStorageService;
+        this.medicalReportRepository = medicalReportRepository;
     }
 
     @PostMapping
@@ -62,6 +75,106 @@ public class PatientController {
             String username = extractUsername(authHeader);
             PatientProfile profile = patientProfileService.updateProfile(username, request);
             return ResponseEntity.ok(new PatientProfileResponse(profile));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/reports")
+    public ResponseEntity<?> uploadReport(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "description", required = false) String description
+    ) {
+        try {
+            String username = extractUsername(authHeader);
+            PatientProfile patient = patientProfileService.getProfile(username);
+            
+            // Verify patient owns this ID
+            if (!patient.getId().equals(id)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("You can only upload reports for your own account"));
+            }
+
+            MedicalReport report = fileStorageService.uploadFile(id, file, description);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new MedicalReportResponse(report, "/api/patients/" + id + "/reports/" + report.getId() + "/download"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/reports")
+    public ResponseEntity<?> getReports(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id
+    ) {
+        try {
+            String username = extractUsername(authHeader);
+            PatientProfile patient = patientProfileService.getProfile(username);
+            
+            // Verify patient owns this ID
+            if (!patient.getId().equals(id)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("You can only view your own reports"));
+            }
+
+            List<MedicalReport> reports = medicalReportRepository.findByPatientId(id);
+            List<MedicalReportResponse> responses = reports.stream()
+                    .map(r -> new MedicalReportResponse(r, "/api/patients/" + id + "/reports/" + r.getId() + "/download"))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(responses);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/reports/{reportId}")
+    public ResponseEntity<?> getReport(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id,
+            @PathVariable Long reportId
+    ) {
+        try {
+            String username = extractUsername(authHeader);
+            PatientProfile patient = patientProfileService.getProfile(username);
+            
+            // Verify patient owns this ID
+            if (!patient.getId().equals(id)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("You can only view your own reports"));
+            }
+
+            MedicalReport report = medicalReportRepository.findByIdAndPatientId(reportId, id)
+                    .orElseThrow(() -> new RuntimeException("Report not found"));
+            return ResponseEntity.ok(new MedicalReportResponse(report, "/api/patients/" + id + "/reports/" + report.getId() + "/download"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{id}/reports/{reportId}")
+    public ResponseEntity<?> deleteReport(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id,
+            @PathVariable Long reportId
+    ) {
+        try {
+            String username = extractUsername(authHeader);
+            PatientProfile patient = patientProfileService.getProfile(username);
+            
+            // Verify patient owns this ID
+            if (!patient.getId().equals(id)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("You can only delete your own reports"));
+            }
+
+            fileStorageService.deleteFile(reportId, id);
+            return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
         } catch (RuntimeException e) {

@@ -103,6 +103,10 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+      AWS_REGION: eu-north-1
+      AWS_S3_BUCKET: patient-reports-damith-001
+      AWS_ACCESS_KEY_ID: AKIAXPP4E6ECQL6Z5AE5
+      AWS_SECRET_ACCESS_KEY: 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
     depends_on:
       patient-postgres:
         condition: service_healthy
