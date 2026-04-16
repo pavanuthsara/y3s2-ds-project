@@ -9,8 +9,12 @@ services:
     container_name: api-gateway
     ports:
       - "8080:8080"
+    environment:
+      AUTH_SERVICE_BASE_URL: http://auth-service:8081/api/auth
+      PATIENT_SERVICE_BASE_URL: http://patient-service:8082/api/patients
     depends_on:
       - auth-service
+      - patient-service
     networks:
       - dsproject-network
 
@@ -55,6 +59,93 @@ services:
     networks:
       - dsproject-network
 
+  # ──────────────────────────────
+  # PATIENT SERVICE
+  # ──────────────────────────────
+  patient-service:
+    build:
+      context: ./patient-service
+      dockerfile: Dockerfile
+    container_name: patient-service
+    expose:
+      - "8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://patient-postgres:5432/patient_service_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+    depends_on:
+      patient-postgres:
+        condition: service_healthy
+    networks:
+      - dsproject-network
+
+  patient-postgres:
+    image: postgres:16-alpine
+    container_name: patient-postgres
+    environment:
+      POSTGRES_DB: patient_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - patient_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────
+  # PAYMENT SERVICE
+  # ──────────────────────────────
+  payment-postgres:
+    image: postgres:16-alpine
+    container_name: payment-postgres
+    environment:
+      POSTGRES_DB: payment_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - payment_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    ports:
+      - "8086:8086"
+    environment:
+      DB_HOST: payment-postgres
+      DB_PORT: 5432
+      DB_NAME: payment_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+      STRIPE_SECRET_KEY: sk_test_51234567890
+      STRIPE_WEBHOOK_SECRET: whsec_test_1234567890
+      STRIPE_PUBLISHABLE_KEY: pk_test_1234567890
+    depends_on:
+      payment-postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - dsproject-network
+
 # ──────────────────────────────
 # SHARED NETWORK & VOLUMES
 # ──────────────────────────────
@@ -64,3 +155,5 @@ networks:
 
 volumes:
   auth_postgres_data:
+  payment_postgres_data:
+  patient_postgres_data:
