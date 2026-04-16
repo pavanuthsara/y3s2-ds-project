@@ -7,11 +7,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 
 @Slf4j
 @Service
@@ -21,6 +26,7 @@ public class SymptomAnalysisService {
     private String geminiApiKey;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent";
 
     public SymptomCheckResponse analyzeSymptoms(SymptomCheckRequest request) {
         log.info("Analyzing symptoms: {}", request.getSymptoms());
@@ -83,52 +89,114 @@ public class SymptomAnalysisService {
     }
 
     private String callGeminiAPI(String prompt) {
-        // For now, return a mock response since we need to handle API key setup
-        // This will be replaced with actual Gemini API call
-        log.info("Calling Gemini API with prompt");
-        
-        // Mock response for demonstration
-        return """
-        {
-          "conditions": [
-            {
-              "name": "Common Cold",
-              "probability": 80,
-              "description": "A viral infection causing upper respiratory symptoms",
-              "characteristics": ["nasal congestion", "cough", "mild fever"],
-              "severity": "mild"
-            },
-            {
-              "name": "Influenza (Flu)",
-              "probability": 60,
-              "description": "Highly contagious viral infection",
-              "characteristics": ["high fever", "body aches", "severe fatigue"],
-              "severity": "moderate"
-            },
-            {
-              "name": "Bronchitis",
-              "probability": 45,
-              "description": "Inflammation of bronchial tubes",
-              "characteristics": ["persistent cough", "mucus production", "chest discomfort"],
-              "severity": "moderate"
+        try {
+            log.info("Calling Gemini API");
+            
+            // Build request body
+            String requestBody = String.format("""
+                {
+                  "contents": [{
+                    "parts": [{
+                      "text": "%s"
+                    }]
+                  }]
+                }
+                """, escapeJsonString(prompt));
+            
+            // Make HTTP POST request
+            URL url = new URL(GEMINI_API_URL + "?key=" + geminiApiKey);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+            
+            // Send request
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = requestBody.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
             }
-          ],
-          "recommendedSpecialties": ["General Practitioner", "Pulmonologist", "ENT Specialist"],
-          "warnings": ["If fever exceeds 103F, seek immediate care", "If difficulty breathing occurs, visit ER"],
-          "nextSteps": "Rest, stay hydrated, monitor symptoms for 2-3 days. If symptoms worsen, consult a healthcare provider.",
-          "confidence": "high"
+            
+            // Read response
+            int responseCode = connection.getResponseCode();
+            log.info("Gemini API Response Code: {}", responseCode);
+            
+            String response;
+            if (responseCode == 200) {
+                response = readResponseStream(connection.getInputStream());
+                log.info("Gemini API Response received successfully");
+                log.debug("Response: {}", response);
+            } else {
+                // Read error response
+                String errorResponse = readResponseStream(connection.getErrorStream());
+                log.error("Gemini API Error Response Code: {} - {}", responseCode, errorResponse);
+                return getErrorResponseJson();
+            }
+            
+            // Extract text from Gemini response
+            return extractTextFromGeminiResponse(response);
+            
+        } catch (Exception e) {
+            log.error("Error calling Gemini API: {}", e.getMessage(), e);
+            return getErrorResponseJson();
         }
-        """;
+    }
+    
+    private String readResponseStream(java.io.InputStream stream) throws Exception {
+        if (stream == null) {
+            return "";
+        }
+        try (Scanner scanner = new Scanner(stream, StandardCharsets.UTF_8)) {
+            scanner.useDelimiter("\\A");
+            return scanner.hasNext() ? scanner.next() : "";
+        }
+    }
+    
+    private String extractTextFromGeminiResponse(String jsonResponse) throws Exception {
+        // Parse Gemini response and extract the text content
+        com.fasterxml.jackson.databind.JsonNode root = objectMapper.readTree(jsonResponse);
+        com.fasterxml.jackson.databind.JsonNode candidates = root.get("candidates");
+        
+        if (candidates != null && candidates.isArray() && candidates.size() > 0) {
+            com.fasterxml.jackson.databind.JsonNode firstCandidate = candidates.get(0);
+            com.fasterxml.jackson.databind.JsonNode content = firstCandidate.get("content");
+            if (content != null) {
+                com.fasterxml.jackson.databind.JsonNode parts = content.get("parts");
+                if (parts != null && parts.isArray() && parts.size() > 0) {
+                    com.fasterxml.jackson.databind.JsonNode textNode = parts.get(0).get("text");
+                    if (textNode != null) {
+                        return textNode.asText();
+                    }
+                }
+            }
+        }
+        
+        log.error("Could not extract text from Gemini response: {}", jsonResponse);
+        return getErrorResponseJson();
+    }
+    
+    private String escapeJsonString(String input) {
+        return input
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t");
     }
 
     private SymptomCheckResponse parseGeminiResponse(String jsonResponse, SymptomCheckRequest request) {
         try {
-            SymptomCheckResponse response = objectMapper.readValue(jsonResponse, SymptomCheckResponse.class);
+            // Clean up response if needed (remove markdown code blocks if present)
+            String cleanedResponse = jsonResponse
+                .replaceFirst("^```json\\s*", "")
+                .replaceFirst("^```\\s*", "")
+                .replaceAll("\\s*```$", "");
+            
+            SymptomCheckResponse response = objectMapper.readValue(cleanedResponse, SymptomCheckResponse.class);
             response.setAnalysisTimestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             response.setDisclaimer("This is a preliminary AI-based analysis and should NOT be used as a substitute for professional medical advice. Always consult with a qualified healthcare provider for accurate diagnosis and treatment.");
             return response;
         } catch (Exception e) {
-            log.error("Error parsing Gemini response", e);
+            log.error("Error parsing Gemini response: {}", e.getMessage(), e);
             return getErrorResponse();
         }
     }
@@ -139,6 +207,18 @@ public class SymptomAnalysisService {
         response.setDisclaimer("This is a preliminary AI-based analysis and should NOT be used as a substitute for professional medical advice.");
         response.setNextSteps("Please consult with a healthcare provider for proper medical evaluation.");
         return response;
+    }
+
+    private String getErrorResponseJson() {
+        return """
+        {
+          "conditions": [],
+          "recommendedSpecialties": [],
+          "warnings": ["Unable to analyze symptoms. Please try again later."],
+          "nextSteps": "Please consult with a healthcare provider.",
+          "confidence": "low"
+        }
+        """;
     }
 
 }
