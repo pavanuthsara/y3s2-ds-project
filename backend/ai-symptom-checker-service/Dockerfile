@@ -4,10 +4,12 @@ WORKDIR /app
 
 COPY pom.xml .
 COPY src ./src
+COPY .mvn .mvn
+COPY mvnw .
 
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:17-jdk-alpine
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
