@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PaymentConfirmRequest {
 
-    @NotBlank(message = "Payment Intent ID is required")
-    private String paymentIntentId;
+    @NotBlank(message = "Transaction ID is required")
+    private String transactionId;
 
     private String paymentMethodId;
 }
