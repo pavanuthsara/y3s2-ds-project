@@ -11,6 +11,7 @@ services:
       - "8080:8080"
     depends_on:
       - auth-service
+      - ai-symptom-checker
     networks:
       - dsproject-network
 
@@ -52,6 +53,21 @@ services:
     depends_on:
       auth-postgres:
         condition: service_healthy
+    networks:
+      - dsproject-network
+
+  # ──────────────────────────────
+  # AI SYMPTOM CHECKER SERVICE
+  # ──────────────────────────────
+  ai-symptom-checker:
+    build:
+      context: ./ai-symptom-checker-service
+      dockerfile: Dockerfile
+    container_name: ai-symptom-checker
+    expose:
+      - "8087"
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-your-gemini-api-key-here}
     networks:
       - dsproject-network
 
