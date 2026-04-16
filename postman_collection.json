@@ -248,6 +248,116 @@
         }
       ],
       "description": "Requests routed through API Gateway (Port 8080) to Auth Service (Port 8081)"
+    },
+    {
+      "name": "Patient Service (Port 8080)",
+      "item": [
+        {
+          "name": "Create Patient Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text",
+                "description": "JWT token - get from Login endpoint"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"dateOfBirth\": \"1990-05-15\",\n  \"gender\": \"FEMALE\",\n  \"phoneNumber\": \"+1-555-0101\",\n  \"address\": \"123 Main Street, Springfield\",\n  \"emergencyContact\": \"Jane Smith\",\n  \"medicalHistory\": \"No known allergies\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/patients",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "patients"
+              ]
+            },
+            "description": "Creates a patient profile for the authenticated user. Requires valid JWT token."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current Patient Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text",
+                "description": "JWT token - get from Login endpoint"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/patients/me",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "patients",
+                "me"
+              ]
+            },
+            "description": "Returns the current authenticated patient's profile. Requires valid JWT token."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Current Patient Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text",
+                "description": "JWT token - get from Login endpoint"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"dateOfBirth\": \"1990-05-15\",\n  \"gender\": \"FEMALE\",\n  \"phoneNumber\": \"+1-555-0102\",\n  \"address\": \"456 Oak Avenue, Springfield\",\n  \"emergencyContact\": \"John Smith\",\n  \"medicalHistory\": \"Hypertension, on medication\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/patients/me",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "patients",
+                "me"
+              ]
+            },
+            "description": "Updates the current authenticated patient's profile. Requires valid JWT token."
+          },
+          "response": []
+        }
+      ],
+      "description": "Patient Service endpoints for managing patient profiles"
     }
   ],
   "variable": [
