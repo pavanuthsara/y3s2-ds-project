@@ -1,6 +1,7 @@
 package com.se73.auth_service.service;
 
 import com.se73.auth_service.dto.RegisterRequest;
+import com.se73.auth_service.exception.UserNotFoundException;
 import com.se73.auth_service.model.User;
 import com.se73.auth_service.model.UserRole;
 import com.se73.auth_service.repository.UserRepository;
@@ -50,16 +51,16 @@ public class UserService implements UserDetailsService {
 
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
+                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
     }
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
     }
 
     public User findById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
     }
 }
