@@ -26,12 +26,20 @@ public class ProxyController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        return restTemplate.postForEntity(authServiceUrl + "/login", request, Object.class);
+        try {
+            return restTemplate.postForEntity(authServiceUrl + "/login", request, Object.class);
+        } catch (HttpStatusCodeException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getResponseBodyAsString());
+        }
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        return restTemplate.postForEntity(authServiceUrl + "/register", request, Object.class);
+        try {
+            return restTemplate.postForEntity(authServiceUrl + "/register", request, Object.class);
+        } catch (HttpStatusCodeException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getResponseBodyAsString());
+        }
     }
 
     @GetMapping("/validate")
