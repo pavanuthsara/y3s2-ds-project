@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 @Component

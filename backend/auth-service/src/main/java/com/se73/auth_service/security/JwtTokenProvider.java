@@ -2,7 +2,6 @@ package com.se73.auth_service.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import com.se73.auth_service.model.User;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,7 +42,7 @@ public class JwtTokenProvider {
             builder.claim("role", role);
         }
 
-        return builder.signWith(key, SignatureAlgorithm.HS512)
+        return builder.signWith(key, Jwts.SIG.HS512)
             .compact();
     }
 
@@ -72,7 +71,7 @@ public class JwtTokenProvider {
             builder.claim("role", authority);
         }
 
-        return builder.signWith(key, SignatureAlgorithm.HS512)
+        return builder.signWith(key, Jwts.SIG.HS512)
             .compact();
     }
 

@@ -1,0 +1,191 @@
+.doctor-portal-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.doctor-portal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #003b46, #07575b);
+  color: #f5fbfb;
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow);
+}
+
+.doctor-portal-header h1 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.3vw, 1.8rem);
+}
+
+.doctor-portal-header p {
+  margin: 0.45rem 0 0;
+  color: #cbe8eb;
+  max-width: 64ch;
+}
+
+.doctor-chip {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.doctor-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.doctor-subnav-link {
+  text-decoration: none;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 0.42rem 0.78rem;
+  font-size: 0.9rem;
+}
+
+.doctor-subnav-link:hover {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.doctor-subnav-link.active {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+
+.doctor-portal-content {
+  display: grid;
+  gap: 1rem;
+}
+
+.doctor-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.doctor-metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  padding: 0.9rem;
+}
+
+.doctor-metric-card p {
+  margin: 0;
+  color: var(--muted-ink);
+  font-size: 0.88rem;
+}
+
+.doctor-metric-card h2 {
+  margin: 0.45rem 0 0;
+  font-size: 1.7rem;
+}
+
+.doctor-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.doctor-row-card {
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.72rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  background: #fff;
+}
+
+.doctor-row-card p {
+  margin: 0.3rem 0 0;
+  color: var(--muted-ink);
+}
+
+.button-group {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.doctor-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+
+.full-row {
+  grid-column: 1 / -1;
+}
+
+.auth-shell {
+  min-height: 65vh;
+  display: grid;
+  place-items: center;
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.2rem;
+  width: min(560px, 100%);
+  box-shadow: var(--shadow);
+}
+
+.auth-card.wide {
+  width: min(760px, 100%);
+}
+
+.auth-card h1 {
+  margin: 0;
+}
+
+.auth-card p {
+  color: var(--muted-ink);
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.auth-footer {
+  margin-bottom: 0;
+}
+
+@media (max-width: 980px) {
+  .doctor-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .doctor-portal-header {
+    flex-direction: column;
+  }
+
+  .doctor-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-row {
+    grid-column: auto;
+  }
+
+  .doctor-row-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
