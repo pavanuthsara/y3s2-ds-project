@@ -1,6 +1,19 @@
 import { useEffect, useState } from 'react';
 import { patientAPI } from '../services/api';
 
+const formatDateTime = (value) => {
+  if (!value) {
+    return 'Not available';
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString();
+};
+
 export function PatientPrescriptionsPanel({ patientId }) {
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +49,7 @@ export function PatientPrescriptionsPanel({ patientId }) {
       <div className="mb-6">
         <h2 className="text-xl font-bold text-gray-800">Prescriptions</h2>
         <p className="text-sm text-gray-600 mt-1">
-          Prescription records will appear here once the patient prescriptions endpoint is available.
+          Prescription records issued for this patient are shown here.
         </p>
       </div>
 
@@ -51,10 +64,46 @@ export function PatientPrescriptionsPanel({ patientId }) {
       ) : prescriptions.length === 0 ? (
         <div className="text-gray-500">No prescriptions are available yet.</div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {prescriptions.map((prescription, index) => (
-            <div className="border border-gray-200 rounded-lg p-4" key={prescription.id || index}>
-              <pre className="whitespace-pre-wrap text-sm text-gray-700">{JSON.stringify(prescription, null, 2)}</pre>
+            <div className="border border-gray-200 rounded-lg p-5 bg-gray-50" key={prescription.id || index}>
+              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {prescription.medication || 'Medication'}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Prescribed by Dr. {prescription.doctorUsername || 'Unknown Doctor'}
+                  </p>
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  Issued {formatDateTime(prescription.issuedAt)}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-sm">
+                <div>
+                  <p className="text-gray-500">Dosage</p>
+                  <p className="text-gray-800 font-medium">{prescription.dosage || 'Not specified'}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Appointment ID</p>
+                  <p className="text-gray-800 font-medium break-all">{prescription.appointmentId || 'Not available'}</p>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <p className="text-gray-500 text-sm">Instructions</p>
+                <p className="text-gray-800 text-sm mt-1">{prescription.instructions || 'No instructions provided.'}</p>
+              </div>
+
+              {prescription.notes ? (
+                <div className="mt-4">
+                  <p className="text-gray-500 text-sm">Notes</p>
+                  <p className="text-gray-800 text-sm mt-1">{prescription.notes}</p>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>

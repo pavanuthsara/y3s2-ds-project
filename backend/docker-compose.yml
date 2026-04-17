@@ -13,6 +13,8 @@ services:
       DOCTOR_SERVICE_BASE_URL: http://doctor-service:8083/api/doctors
       SYMPTOM_CHECKER_SERVICE_BASE_URL: http://ai-symptom-checker:8087/api/symptoms
       APPOINTMENT_SERVICE_BASE_URL: http://appointment-service:8085/api/appointments
+      TELEMEDICINE_SERVICE_BASE_URL: http://telemedicine-service:8084/api/telemedicine
+      PAYMENT_SERVICE_BASE_URL: http://payment-service:8086/api/payments
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
     depends_on:
       auth-service:
@@ -20,6 +22,10 @@ services:
       patient-service:
         condition: service_healthy
       doctor-service:
+        condition: service_healthy
+      ai-symptom-checker:
+        condition: service_healthy
+      telemedicine-service:
         condition: service_healthy
     networks:
       - dsproject-network
@@ -107,12 +113,18 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+      APPOINTMENT_SERVICE_BASE_URL: http://appointment-service:8085/api/appointments
+      PRESCRIPTION_SERVICE_BASE_URL: http://doctor-service:8083/api/prescriptions
       AWS_REGION: eu-north-1
       AWS_S3_BUCKET: patient-reports-damith-001
       AWS_ACCESS_KEY_ID: AKIAXPP4E6ECQL6Z5AE5
       AWS_SECRET_ACCESS_KEY: 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
     depends_on:
       patient-postgres:
+        condition: service_healthy
+      doctor-service:
+        condition: service_healthy
+      appointment-service:
         condition: service_healthy
     networks:
       - dsproject-network
@@ -203,6 +215,98 @@ services:
       - dsproject-network
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # TELEMEDICINE SERVICE
+  telemedicine-service:
+    build:
+      context: ./telemedicine-service
+      dockerfile: Dockerfile
+    container_name: telemedicine-service
+    ports:
+      - "8084:8084"
+    environment:
+      APPOINTMENT_SERVICE_BASE_URL: http://appointment-service:8085/api/appointments
+      AGORA_APP_ID: ${AGORA_APP_ID:-demo-app-id}
+      AGORA_APP_CERTIFICATE: ${AGORA_APP_CERTIFICATE:-demo-app-certificate}
+      AGORA_TOKEN_TTL_SECONDS: ${AGORA_TOKEN_TTL_SECONDS:-3600}
+    depends_on:
+      appointment-service:
+        condition: service_healthy
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # AI SYMPTOM CHECKER SERVICE
+  ai-symptom-checker:
+    build:
+      context: ./ai-symptom-checker-service
+      dockerfile: Dockerfile
+    container_name: ai-symptom-checker
+    ports:
+      - "8087:8087"
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-1.5-flash}
+      SYMPTOM_MOCK_ENABLED: ${SYMPTOM_MOCK_ENABLED:-true}
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8087/api/symptoms/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # PAYMENT SERVICE DATABASE
+  payment-postgres:
+    image: postgres:16-alpine
+    container_name: payment-postgres
+    environment:
+      POSTGRES_DB: payment_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5437:5432"
+    volumes:
+      - payment_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PAYMENT SERVICE
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    ports:
+      - "8086:8086"
+    environment:
+      DB_HOST: payment-postgres
+      DB_PORT: 5432
+      DB_NAME: payment_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      STRIPE_SECRET_KEY: sk_test_51TMvcaA621M92XkWJGzMnqZVd9L8ym0EamEll411jtYQZdKhJS3gAa6HSyA8zVJbFFEsrd4WzIf4RkXGtrFal7M9002YvmoSuX
+      STRIPE_PUBLISHABLE_KEY: pk_test_51TMvcaA621M92XkWlrbInOEX3DYU57VAomEhoDr2ua3WZ5FziPiqDHT5lVLkuM8Js0sZeVo8v0vtjxn6fYgrkMvq00wnPkO2EX
+      JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+    depends_on:
+      payment-postgres:
+        condition: service_healthy
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 5

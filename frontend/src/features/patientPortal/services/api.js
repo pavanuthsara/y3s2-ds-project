@@ -229,4 +229,27 @@ export const reportsAPI = {
   },
 };
 
+// **AI SYMPTOM CHECKER ENDPOINTS**
+export const symptomAPI = {
+  analyzeSymptoms: async ({ symptoms, duration, severity, ageGroup, additionalInfo }) => {
+    const response = await fetch(`${API_BASE_URL}/symptoms/analyze`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify({
+        symptoms,
+        duration,
+        severity,
+        ageGroup,
+        additionalInfo,
+      }),
+    });
+
+    if (!response.ok) {
+      throw await createApiError(response, 'Failed to analyze symptoms');
+    }
+
+    return response.json();
+  },
+};
+
 export const isLoggedIn = () => !!getToken();

@@ -1,19 +1,18 @@
-FROM maven:3.9-eclipse-temurin-17 AS builder
+# Build stage
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
 COPY pom.xml .
 COPY src ./src
-COPY .mvn .mvn
-COPY mvnw .
 
-RUN mvn clean package -DskipTests
+RUN mvn package -DskipTests
 
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/target/ai-symptom-checker-service-*.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8087
 
