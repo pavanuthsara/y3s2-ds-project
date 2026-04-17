@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import DoctorSlotSelector from './DoctorSlotSelector';
 import '../styles/AppointmentForm.css';
 
-const AppointmentBookingForm = ({ onSubmit, isLoading = false }) => {
+const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSession = null }) => {
   const [formData, setFormData] = useState({
-    patientId: '',
+    patientId: patientIdFromSession || '',
     doctorUsername: '',
     slotId: '',
     appointmentDateTime: '',
@@ -11,9 +12,32 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false }) => {
     hospital: '',
     notes: '',
   });
-
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
+
+  // Auto-populate fields when slot is selected
+  useEffect(() => {
+    if (selectedSlot) {
+      setFormData((prev) => ({
+        ...prev,
+        doctorUsername: selectedSlot.doctorUsername || '',
+        slotId: selectedSlot.slotId || '',
+        appointmentDateTime: '',
+      }));
+    }
+  }, [selectedSlot]);
+
+  // Auto-populate patient ID from session
+  useEffect(() => {
+    if (patientIdFromSession) {
+      setFormData((prev) => ({
+        ...prev,
+        patientId: patientIdFromSession,
+      }));
+    }
+  }, [patientIdFromSession]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -53,13 +77,21 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false }) => {
       ...prev,
       [name]: value,
     }));
-    // Clear error for this field
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
         [name]: '',
       }));
     }
+  };
+
+  const handleSlotSelected = (slot) => {
+    setSelectedSlot(slot);
+    setSelectedDoctor(slot.doctorName || '');
+  };
+
+  const handleDoctorSelected = (doctor) => {
+    setSelectedDoctor(doctor);
   };
 
   const handleSubmit = async (e) => {
@@ -72,7 +104,6 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false }) => {
     try {
       await onSubmit(formData);
       setSuccess(true);
-      // Reset form after 2 seconds
       setTimeout(() => {
         setFormData({
           patientId: '',
@@ -106,125 +137,135 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false }) => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="appointment-form">
-        <div className="form-group">
-          <label htmlFor="patientId">Patient ID *</label>
-          <input
-            type="text"
-            id="patientId"
-            name="patientId"
-            value={formData.patientId}
-            onChange={handleChange}
-            placeholder="Enter your patient ID"
-            className={errors.patientId ? 'input-error' : ''}
-          />
-          {errors.patientId && (
-            <span className="error-text">{errors.patientId}</span>
-          )}
-        </div>
+      <div className="appointment-doctor-selector">
+        <DoctorSlotSelector
+          onDoctorSelected={handleDoctorSelected}
+          onSlotSelected={handleSlotSelected}
+          selectedDoctorUsername={formData.doctorUsername}
+          selectedSlotId={formData.slotId}
+          appointmentMode={formData.appointmentMode}
+        />
+      </div>
 
-        <div className="form-group">
-          <label htmlFor="doctorUsername">Doctor Username *</label>
+      <div className="appointment-details-section">
+        <h3>Appointment Details</h3>
+
+        <form onSubmit={handleSubmit} className="appointment-form">
+          {!patientIdFromSession && (
+            <div className="form-group">
+              <label htmlFor="patientId">Patient ID *</label>
+              <input
+                type="text"
+                id="patientId"
+                name="patientId"
+                value={formData.patientId}
+                onChange={handleChange}
+                placeholder="Enter your patient ID"
+                className={errors.patientId ? 'input-error' : ''}
+              />
+              {errors.patientId && (
+                <span className="error-text">{errors.patientId}</span>
+              )}
+            </div>
+          )}
+
+          {selectedDoctor && (
+            <div className="form-group">
+              <label>Selected Doctor</label>
+              <input
+                type="text"
+                value={selectedDoctor}
+                disabled
+                className="input-readonly"
+              />
+            </div>
+          )}
+
           <input
-            type="text"
+            type="hidden"
             id="doctorUsername"
             name="doctorUsername"
             value={formData.doctorUsername}
-            onChange={handleChange}
-            placeholder="Enter doctor's username"
-            className={errors.doctorUsername ? 'input-error' : ''}
           />
-          {errors.doctorUsername && (
-            <span className="error-text">{errors.doctorUsername}</span>
-          )}
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="slotId">Slot ID *</label>
           <input
-            type="text"
+            type="hidden"
             id="slotId"
             name="slotId"
             value={formData.slotId}
-            onChange={handleChange}
-            placeholder="Enter slot ID (UUID)"
-            className={errors.slotId ? 'input-error' : ''}
           />
-          {errors.slotId && (
-            <span className="error-text">{errors.slotId}</span>
-          )}
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="appointmentDateTime">Appointment Date & Time *</label>
-          <input
-            type="datetime-local"
-            id="appointmentDateTime"
-            name="appointmentDateTime"
-            value={formData.appointmentDateTime}
-            onChange={handleChange}
-            className={errors.appointmentDateTime ? 'input-error' : ''}
-          />
-          {errors.appointmentDateTime && (
-            <span className="error-text">{errors.appointmentDateTime}</span>
-          )}
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="appointmentMode">Appointment Mode *</label>
-          <select
-            id="appointmentMode"
-            name="appointmentMode"
-            value={formData.appointmentMode}
-            onChange={handleChange}
-            className={errors.appointmentMode ? 'input-error' : ''}
-          >
-            <option value="VIRTUAL">Virtual</option>
-            <option value="PHYSICAL">Physical</option>
-          </select>
-          {errors.appointmentMode && (
-            <span className="error-text">{errors.appointmentMode}</span>
-          )}
-        </div>
-
-        {formData.appointmentMode === 'PHYSICAL' && (
           <div className="form-group">
-            <label htmlFor="hospital">Hospital/Location *</label>
+            <label htmlFor="appointmentDateTime">Appointment Date & Time *</label>
             <input
-              type="text"
-              id="hospital"
-              name="hospital"
-              value={formData.hospital}
+              type="datetime-local"
+              id="appointmentDateTime"
+              name="appointmentDateTime"
+              value={formData.appointmentDateTime}
               onChange={handleChange}
-              placeholder="Enter hospital or location"
-              className={errors.hospital ? 'input-error' : ''}
+              className={errors.appointmentDateTime ? 'input-error' : ''}
             />
-            {errors.hospital && (
-              <span className="error-text">{errors.hospital}</span>
+            {errors.appointmentDateTime && (
+              <span className="error-text">{errors.appointmentDateTime}</span>
             )}
           </div>
-        )}
 
-        <div className="form-group">
-          <label htmlFor="notes">Notes</label>
-          <textarea
-            id="notes"
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            placeholder="Any additional notes or requirements"
-            rows="4"
-          ></textarea>
-        </div>
+          <div className="form-group">
+            <label htmlFor="appointmentMode">Appointment Mode *</label>
+            <select
+              id="appointmentMode"
+              name="appointmentMode"
+              value={formData.appointmentMode}
+              onChange={handleChange}
+              className={errors.appointmentMode ? 'input-error' : ''}
+            >
+              <option value="VIRTUAL">Virtual</option>
+              <option value="PHYSICAL">Physical</option>
+            </select>
+            {errors.appointmentMode && (
+              <span className="error-text">{errors.appointmentMode}</span>
+            )}
+          </div>
 
-        <button
-          type="submit"
-          className="btn btn-primary"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Booking...' : 'Book Appointment'}
-        </button>
-      </form>
+          {formData.appointmentMode === 'PHYSICAL' && (
+            <div className="form-group">
+              <label htmlFor="hospital">Hospital/Location *</label>
+              <input
+                type="text"
+                id="hospital"
+                name="hospital"
+                value={formData.hospital}
+                onChange={handleChange}
+                placeholder="Enter hospital or location"
+                className={errors.hospital ? 'input-error' : ''}
+              />
+              {errors.hospital && (
+                <span className="error-text">{errors.hospital}</span>
+              )}
+            </div>
+          )}
+
+          <div className="form-group">
+            <label htmlFor="notes">Notes</label>
+            <textarea
+              id="notes"
+              name="notes"
+              value={formData.notes}
+              onChange={handleChange}
+              placeholder="Any additional notes or requirements"
+              rows="4"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Booking...' : 'Book Appointment'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

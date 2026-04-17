@@ -30,6 +30,19 @@ public class DoctorAvailabilityProxyController {
 		this.restTemplate = restTemplate;
 	}
 
+	@GetMapping("/all")
+	public ResponseEntity<?> getAllAvailability(HttpServletRequest request) {
+		HttpHeaders headers = buildForwardHeaders(request);
+		HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+		return restTemplate.exchange(
+				DOCTOR_SERVICE_AVAILABILITY_URL + "/all",
+				HttpMethod.GET,
+				entity,
+				Object.class
+		);
+	}
+
 	@GetMapping
 	public ResponseEntity<?> getAvailability(HttpServletRequest request) {
 		HttpHeaders headers = buildForwardHeaders(request);

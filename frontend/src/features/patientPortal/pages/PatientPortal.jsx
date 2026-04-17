@@ -5,6 +5,7 @@ import { FileUpload } from '../components/FileUpload';
 import { FileList } from '../components/FileList';
 import AppointmentBookingForm from '../../appointments/components/AppointmentBookingForm';
 import AppointmentHistoryPage from '../../appointments/pages/AppointmentHistoryPage';
+import appointmentService from '../../appointments/services/appointmentService';
 import { authAPI, isLoggedIn } from '../services/api';
 
 export function PatientPortal() {
@@ -44,6 +45,13 @@ export function PatientPortal() {
   const handleUploadSuccess = () => {
     // Trigger refresh of file list
     setRefreshReports((prev) => prev + 1);
+  };
+
+  const handleAppointmentBooking = async (data) => {
+    return appointmentService.createAppointment({
+      ...data,
+      slotId: data.slotId,
+    });
   };
 
   if (!session) {
@@ -120,11 +128,11 @@ export function PatientPortal() {
         )}
 
         {activeTab === 'book-appointment' && (
-          <div className="bg-white rounded-lg p-8 box-shadow">
-            <AppointmentBookingForm onSubmit={async (data) => {
-              // The form will handle the submission
-              console.log('Booking appointment:', data);
-            }} />
+          <div className="bg-white rounded-lg p-8">
+            <AppointmentBookingForm 
+              onSubmit={handleAppointmentBooking}
+              patientIdFromSession={session.username}
+            />
           </div>
         )}
 

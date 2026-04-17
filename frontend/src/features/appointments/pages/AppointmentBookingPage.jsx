@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AppointmentBookingForm from '../components/AppointmentBookingForm';
 import appointmentService from '../services/appointmentService';
 import '../styles/AppointmentBooking.css';
@@ -6,6 +6,15 @@ import '../styles/AppointmentBooking.css';
 const AppointmentBookingPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [bookingResult, setBookingResult] = useState(null);
+  const [patientIdFromSession, setPatientIdFromSession] = useState(null);
+
+  // Get patient ID from session
+  useEffect(() => {
+    const username = localStorage.getItem('username');
+    if (username) {
+      setPatientIdFromSession(username);
+    }
+  }, []);
 
   const handleBooking = async (formData) => {
     setIsLoading(true);
@@ -39,6 +48,7 @@ const AppointmentBookingPage = () => {
           <AppointmentBookingForm
             onSubmit={handleBooking}
             isLoading={isLoading}
+            patientIdFromSession={patientIdFromSession}
           />
         </div>
 
