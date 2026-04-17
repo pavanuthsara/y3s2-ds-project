@@ -8,7 +8,9 @@ import com.se73.doctor_service.service.PrescriptionService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class PrescriptionServiceImpl implements PrescriptionService {
@@ -45,6 +47,18 @@ public class PrescriptionServiceImpl implements PrescriptionService {
 			.orElseThrow(() -> new IllegalArgumentException("Prescription not found"));
 
 		return toResponse(prescription);
+	}
+
+	@Override
+	public List<PrescriptionResponse> getPrescriptionsByPatientId(String patientId) {
+		if (!StringUtils.hasText(patientId)) {
+			throw new IllegalArgumentException("Patient id is required");
+		}
+
+		List<Prescription> prescriptions = repository.findByPatientId(patientId);
+		return prescriptions.stream()
+			.map(this::toResponse)
+			.collect(Collectors.toList());
 	}
 
 	private void validateDoctorUsername(String doctorUsername) {

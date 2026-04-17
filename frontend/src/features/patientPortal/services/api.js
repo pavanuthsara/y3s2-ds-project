@@ -1,9 +1,18 @@
 const API_BASE_URL = 'http://localhost:8082/api';
 
 // Storage for auth token
-const getToken = () => localStorage.getItem('patientToken');
-const setToken = (token) => localStorage.setItem('patientToken', token);
-const clearToken = () => localStorage.removeItem('patientToken');
+const TOKEN_KEY = 'authToken';
+const LEGACY_TOKEN_KEY = 'patientToken';
+
+const getToken = () => localStorage.getItem(TOKEN_KEY);
+const setToken = (token) => {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
+};
+const clearToken = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
+};
 
 // Auth headers
 const getHeaders = (includeAuth = true) => {

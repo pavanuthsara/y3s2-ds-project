@@ -1,14 +1,15 @@
-const API_BASE_URL =
-  import.meta.env.VITE_DOCTOR_SERVICE_URL?.replace(/\/$/, "") || "/doctor-service";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'http://localhost:8080';
 
-function buildHeaders(userContext, hasBody = false) {
-  const headers = {
-    "X-User-Id": userContext.userId,
-    "X-User-Role": userContext.userRole,
-  };
+function buildHeaders(hasBody = false) {
+  const headers = {};
+  const token = localStorage.getItem('authToken');
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
 
   if (hasBody) {
-    headers["Content-Type"] = "application/json";
+    headers['Content-Type'] = 'application/json';
   }
 
   return headers;
@@ -37,32 +38,32 @@ async function request(path, options = {}) {
   return response.json();
 }
 
-export function getDoctorAvailability(userContext) {
-  return request("/api/doctors/availability", {
-    method: "GET",
-    headers: buildHeaders(userContext),
+export function getDoctorAvailability() {
+  return request('/api/doctors/availability', {
+    method: 'GET',
+    headers: buildHeaders(),
   });
 }
 
-export function addDoctorAvailabilitySlot(userContext, slot) {
-  return request("/api/doctors/availability/slots", {
-    method: "POST",
-    headers: buildHeaders(userContext, true),
+export function addDoctorAvailabilitySlot(slot) {
+  return request('/api/doctors/availability/slots', {
+    method: 'POST',
+    headers: buildHeaders(true),
     body: JSON.stringify(slot),
   });
 }
 
-export function replaceDoctorAvailability(userContext, slots) {
-  return request("/api/doctors/availability", {
-    method: "PUT",
-    headers: buildHeaders(userContext, true),
+export function replaceDoctorAvailability(slots) {
+  return request('/api/doctors/availability', {
+    method: 'PUT',
+    headers: buildHeaders(true),
     body: JSON.stringify({ slots }),
   });
 }
 
-export function deleteDoctorAvailabilitySlot(userContext, slotId) {
+export function deleteDoctorAvailabilitySlot(slotId) {
   return request(`/api/doctors/availability/slots/${slotId}`, {
-    method: "DELETE",
-    headers: buildHeaders(userContext),
+    method: 'DELETE',
+    headers: buildHeaders(),
   });
 }
