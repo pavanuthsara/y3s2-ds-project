@@ -1,6 +1,6 @@
 package com.SE73.appointment_service.exception;
 
-import com.se73.appointment_service.dto.ErrorResponse;
+import com.SE73.appointment_service.dto.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -92,3 +92,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }
+

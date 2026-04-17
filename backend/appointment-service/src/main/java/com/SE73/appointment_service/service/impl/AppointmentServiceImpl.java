@@ -247,3 +247,4 @@ public class AppointmentServiceImpl implements AppointmentService {
         return response;
     }
 }
+

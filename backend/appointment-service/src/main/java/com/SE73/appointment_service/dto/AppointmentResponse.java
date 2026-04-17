@@ -159,3 +159,4 @@ public class AppointmentResponse {
         this.updatedAt = updatedAt;
     }
 }
+

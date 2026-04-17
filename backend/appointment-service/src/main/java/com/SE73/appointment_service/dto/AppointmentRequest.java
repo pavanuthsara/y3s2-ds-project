@@ -117,3 +117,4 @@ public class AppointmentRequest {
         this.notes = notes;
     }
 }
+

@@ -7,3 +7,4 @@ public enum AppointmentMode {
     VIRTUAL,
     PHYSICAL
 }
+

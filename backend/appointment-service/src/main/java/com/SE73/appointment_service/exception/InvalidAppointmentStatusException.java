@@ -14,3 +14,4 @@ public class InvalidAppointmentStatusException extends RuntimeException {
         super(message, cause);
     }
 }
+

@@ -55,3 +55,4 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
      */
     boolean existsBySlotId(UUID slotId);
 }
+

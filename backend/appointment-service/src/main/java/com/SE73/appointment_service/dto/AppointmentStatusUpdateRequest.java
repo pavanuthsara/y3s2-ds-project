@@ -50,3 +50,4 @@ public class AppointmentStatusUpdateRequest {
         this.notes = notes;
     }
 }
+

@@ -1,8 +1,8 @@
 package com.SE73.appointment_service.service;
 
-import com.se73.appointment_service.dto.AppointmentRequest;
-import com.se73.appointment_service.dto.AppointmentResponse;
-import com.se73.appointment_service.dto.AppointmentStatusUpdateRequest;
+import com.SE73.appointment_service.dto.AppointmentRequest;
+import com.SE73.appointment_service.dto.AppointmentResponse;
+import com.SE73.appointment_service.dto.AppointmentStatusUpdateRequest;
 
 import java.util.List;
 import java.util.UUID;
@@ -68,3 +68,4 @@ public interface AppointmentService {
      */
     List<AppointmentResponse> getAllAppointments();
 }
+

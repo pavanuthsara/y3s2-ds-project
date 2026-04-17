@@ -1,9 +1,9 @@
 package com.SE73.appointment_service.controller;
 
-import com.se73.appointment_service.dto.AppointmentRequest;
-import com.se73.appointment_service.dto.AppointmentResponse;
-import com.se73.appointment_service.dto.AppointmentStatusUpdateRequest;
-import com.se73.appointment_service.service.AppointmentService;
+import com.SE73.appointment_service.dto.AppointmentRequest;
+import com.SE73.appointment_service.dto.AppointmentResponse;
+import com.SE73.appointment_service.dto.AppointmentStatusUpdateRequest;
+import com.SE73.appointment_service.service.AppointmentService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,3 +157,4 @@ public class AppointmentController {
         return ResponseEntity.noContent().build();
     }
 }
+

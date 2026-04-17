@@ -1,4 +1,4 @@
-package com.se73.appointment_service;
+package com.SE73.appointment_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -15,3 +15,4 @@ public class AppointmentServiceApplication {
     }
 
 }
+

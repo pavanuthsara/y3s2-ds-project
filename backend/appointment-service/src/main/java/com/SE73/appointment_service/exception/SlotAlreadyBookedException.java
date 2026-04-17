@@ -14,3 +14,4 @@ public class SlotAlreadyBookedException extends RuntimeException {
         super(message, cause);
     }
 }
+
