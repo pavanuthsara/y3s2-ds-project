@@ -2,6 +2,51 @@ import { useState, useEffect } from 'react';
 import DoctorSlotSelector from './DoctorSlotSelector';
 import '../styles/AppointmentForm.css';
 
+const DAY_NAME_TO_INDEX = {
+  SUNDAY: 0,
+  MONDAY: 1,
+  TUESDAY: 2,
+  WEDNESDAY: 3,
+  THURSDAY: 4,
+  FRIDAY: 5,
+  SATURDAY: 6,
+};
+
+const formatDateTimeLocal = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const getNextSlotDateTime = (slot) => {
+  if (!slot?.dayOfWeek || !slot?.startTime) {
+    return '';
+  }
+
+  const targetDay = DAY_NAME_TO_INDEX[slot.dayOfWeek.toUpperCase()];
+  if (targetDay === undefined) {
+    return '';
+  }
+
+  const [hours = '0', minutes = '0'] = slot.startTime.split(':');
+  const now = new Date();
+  const candidate = new Date(now);
+  candidate.setSeconds(0, 0);
+  candidate.setHours(Number(hours), Number(minutes), 0, 0);
+
+  const daysUntilTarget = (targetDay - now.getDay() + 7) % 7;
+  candidate.setDate(now.getDate() + daysUntilTarget);
+
+  if (candidate <= now) {
+    candidate.setDate(candidate.getDate() + 7);
+  }
+
+  return formatDateTimeLocal(candidate);
+};
+
 const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSession = null }) => {
   const [formData, setFormData] = useState({
     patientId: patientIdFromSession || '',
@@ -24,7 +69,7 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
         ...prev,
         doctorUsername: selectedSlot.doctorUsername || '',
         slotId: selectedSlot.slotId || '',
-        appointmentDateTime: '',
+        appointmentDateTime: getNextSlotDateTime(selectedSlot),
       }));
     }
   }, [selectedSlot]);
@@ -106,7 +151,7 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
       setSuccess(true);
       setTimeout(() => {
         setFormData({
-          patientId: '',
+          patientId: patientIdFromSession || '',
           doctorUsername: '',
           slotId: '',
           appointmentDateTime: '',
@@ -207,6 +252,11 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
             />
             {errors.appointmentDateTime && (
               <span className="error-text">{errors.appointmentDateTime}</span>
+            )}
+            {selectedSlot && !errors.appointmentDateTime && (
+              <span className="text-sm text-gray-500">
+                Auto-filled from the selected slot. Adjust only if you need a later matching time.
+              </span>
             )}
           </div>
 
