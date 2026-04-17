@@ -10,14 +10,20 @@ services:
     environment:
       AUTH_SERVICE_BASE_URL: http://auth-service:8081/api/auth
       PATIENT_SERVICE_BASE_URL: http://patient-service:8082/api/patients
+      DOCTOR_SERVICE_BASE_URL: http://doctor-service:8083/api/doctors
       SYMPTOM_CHECKER_SERVICE_BASE_URL: http://ai-symptom-checker:8087/api/symptoms
+      APPOINTMENT_SERVICE_BASE_URL: http://appointment-service:8085/api/appointments
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
     depends_on:
       auth-service:
         condition: service_healthy
       patient-service:
         condition: service_healthy
+      doctor-service:
+        condition: service_healthy
       ai-symptom-checker:
+        condition: service_healthy
+      appointment-service:
         condition: service_healthy
     networks:
       - dsproject-network
