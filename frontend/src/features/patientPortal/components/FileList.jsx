@@ -48,7 +48,7 @@ export function FileList({ patientId, refreshTrigger }) {
 
     const reportUrl = report.downloadUrl.startsWith('http')
       ? report.downloadUrl
-      : `http://localhost:8082${report.downloadUrl}`;
+      : `http://localhost:8080${report.downloadUrl}`;
 
     const openedWindow = window.open(reportUrl, '_blank', 'noopener,noreferrer');
 

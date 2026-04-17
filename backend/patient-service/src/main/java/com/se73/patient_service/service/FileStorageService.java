@@ -5,9 +5,12 @@ import com.se73.patient_service.repository.MedicalReportRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -76,11 +79,7 @@ public class FileStorageService {
             MedicalReport report = medicalReportRepository.findByIdAndPatientId(reportId, patientId)
                     .orElseThrow(() -> new RuntimeException("Report not found"));
 
-            // Extract S3 key from minioPath
-            // Format: s3://bucket-name/reports/patientId/filename
-            String s3Path = report.getMinioPath();
-            String s3Key = s3Path.substring(s3Path.indexOf("/") + 1); // Remove s3://bucket/
-            s3Key = s3Key.substring(s3Key.indexOf("/") + 1); // Remove bucket-name/
+            String s3Key = extractS3Key(report.getMinioPath());
 
             // Delete from S3
             DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
@@ -95,6 +94,31 @@ public class FileStorageService {
 
         } catch (S3Exception e) {
             throw new RuntimeException("S3 error: " + e.getMessage(), e);
+        }
+    }
+
+    public DownloadedFile downloadFile(Long reportId, Long patientId) {
+        try {
+            MedicalReport report = medicalReportRepository.findByIdAndPatientId(reportId, patientId)
+                    .orElseThrow(() -> new RuntimeException("Report not found"));
+
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(extractS3Key(report.getMinioPath()))
+                    .build();
+
+            try (ResponseInputStream<GetObjectResponse> objectStream = s3Client.getObject(getObjectRequest)) {
+                byte[] fileBytes = objectStream.readAllBytes();
+                String contentType = objectStream.response().contentType();
+                if (contentType == null || contentType.isBlank()) {
+                    contentType = inferContentType(report.getFileName());
+                }
+                return new DownloadedFile(report.getFileName(), contentType, fileBytes);
+            }
+        } catch (S3Exception e) {
+            throw new RuntimeException("S3 error: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException("IO error: " + e.getMessage(), e);
         }
     }
 
@@ -119,5 +143,28 @@ public class FileStorageService {
             return "SPREADSHEET";
         }
         return contentType;
+    }
+
+    private String extractS3Key(String s3Path) {
+        String s3Key = s3Path.substring(s3Path.indexOf("/") + 1);
+        return s3Key.substring(s3Key.indexOf("/") + 1);
+    }
+
+    private String inferContentType(String fileName) {
+        String extension = getFileExtension(fileName).toLowerCase();
+        return switch (extension) {
+            case "pdf" -> "application/pdf";
+            case "png" -> "image/png";
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "doc" -> "application/msword";
+            case "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "xls" -> "application/vnd.ms-excel";
+            case "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            case "txt" -> "text/plain";
+            default -> "application/octet-stream";
+        };
+    }
+
+    public record DownloadedFile(String fileName, String contentType, byte[] content) {
     }
 }
