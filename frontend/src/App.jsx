@@ -1,15 +1,12 @@
-import { useState } from 'react'
 import './App.css'
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+import { Routes, Route, Link } from 'react-router-dom'
 import Home from './components/Home'
 import About from './components/About'
 import Contact from './components/Contact'
-import DoctorAvailabilityPage from './features/doctorAvailability/pages/DoctorAvailabilityPage'
 import PatientPortal from './features/patientPortal/pages/PatientPortal'
+import DoctorPortal from './features/doctorPortal/pages/DoctorPortal'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <div className="app-shell">
       <nav className="top-nav">
@@ -27,7 +24,7 @@ function App() {
             <Link to="/patient">Patient Portal</Link>
           </li>
           <li>
-            <Link to="/doctor/availability">Doctor Availability</Link>
+            <Link to="/doctor">Doctor Portal</Link>
           </li>
         </ul>
       </nav>
@@ -38,7 +35,8 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/patient" element={<PatientPortal />} />
-          <Route path="/doctor/availability" element={<DoctorAvailabilityPage />} />
+          <Route path="/doctor" element={<DoctorPortal initialTab="profile" />} />
+          <Route path="/doctor/availability" element={<DoctorPortal initialTab="availability" />} />
         </Routes>
       </main>
     </div>
