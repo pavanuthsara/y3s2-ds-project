@@ -107,12 +107,18 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+      APPOINTMENT_SERVICE_BASE_URL: http://appointment-service:8085/api/appointments
+      PRESCRIPTION_SERVICE_BASE_URL: http://doctor-service:8083/api/prescriptions
       AWS_REGION: eu-north-1
       AWS_S3_BUCKET: patient-reports-damith-001
       AWS_ACCESS_KEY_ID: AKIAXPP4E6ECQL6Z5AE5
       AWS_SECRET_ACCESS_KEY: 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
     depends_on:
       patient-postgres:
+        condition: service_healthy
+      doctor-service:
+        condition: service_healthy
+      appointment-service:
         condition: service_healthy
     networks:
       - dsproject-network
