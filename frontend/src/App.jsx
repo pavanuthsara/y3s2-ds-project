@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import Home from './components/Home'
 import About from './components/About'
 import Contact from './components/Contact'
+import { SymptomChecker } from './components/SymptomChecker'
 import DoctorAvailabilityPage from './features/doctorAvailability/pages/DoctorAvailabilityPage'
 import PatientPortal from './features/patientPortal/pages/PatientPortal'
 
@@ -24,6 +25,9 @@ function App() {
             <Link to="/contact">Contact</Link>
           </li>
           <li>
+            <Link to="/symptom-checker">AI Symptom Checker</Link>
+          </li>
+          <li>
             <Link to="/patient">Patient Portal</Link>
           </li>
           <li>
@@ -37,6 +41,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/symptom-checker" element={<SymptomChecker />} />
           <Route path="/patient" element={<PatientPortal />} />
           <Route path="/doctor/availability" element={<DoctorAvailabilityPage />} />
         </Routes>

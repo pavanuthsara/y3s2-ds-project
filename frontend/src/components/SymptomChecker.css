@@ -1,0 +1,61 @@
+/* Symptom Checker Component Styles */
+
+.symptom-chunk {
+  display: inline-block;
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.symptom-chunk button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  font-weight: bold;
+}
+
+.symptom-chunk button:hover {
+  opacity: 0.8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .sticky {
+    position: static;
+  }
+}
+
+/* Loading spinner */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Conditional styling for severity */
+.severity-severe {
+  border-left-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.severity-moderate {
+  border-left-color: #eab308;
+  background-color: #fefce8;
+}
+
+.severity-mild {
+  border-left-color: #22c55e;
+  background-color: #f0fdf4;
+}

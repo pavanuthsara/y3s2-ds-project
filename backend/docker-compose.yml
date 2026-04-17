@@ -17,6 +17,8 @@ services:
         condition: service_healthy
       patient-service:
         condition: service_healthy
+      ai-symptom-checker:
+        condition: service_healthy
     networks:
       - dsproject-network
     healthcheck:
@@ -206,6 +208,26 @@ services:
       - dsproject-network
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # AI SYMPTOM CHECKER SERVICE
+  ai-symptom-checker:
+    build:
+      context: ./ai-symptom-checker-service
+      dockerfile: Dockerfile
+    container_name: ai-symptom-checker
+    ports:
+      - "8087:8087"
+    environment:
+      SERVER_PORT: 8087
+      GEMINI_API_KEY: "AQ.Ab8RN6IDXVyoozfkIVAQ_4ChgSxEaqiUF7QbOkxAb_doFadr4g"
+      SPRING_APPLICATION_NAME: ai-symptom-checker-service
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8087/api/symptoms/health || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 5

@@ -29,6 +29,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/symptoms/**").permitAll()
                         .requestMatchers("/health/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().permitAll()
