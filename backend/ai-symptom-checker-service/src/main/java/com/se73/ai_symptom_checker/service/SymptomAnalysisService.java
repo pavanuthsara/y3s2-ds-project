@@ -25,8 +25,11 @@ public class SymptomAnalysisService {
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
+    @Value("${gemini.api.model}")
+    private String geminiModel;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent";
+    private static final String GEMINI_API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1/models/%s:generateContent";
 
     public SymptomCheckResponse analyzeSymptoms(SymptomCheckRequest request) {
         log.info("Analyzing symptoms: {}", request.getSymptoms());
@@ -104,7 +107,8 @@ public class SymptomAnalysisService {
                 """, escapeJsonString(prompt));
             
             // Make HTTP POST request
-            URL url = new URL(GEMINI_API_URL + "?key=" + geminiApiKey);
+            String endpoint = String.format(GEMINI_API_URL_TEMPLATE, geminiModel);
+            URL url = new URL(endpoint + "?key=" + geminiApiKey);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
