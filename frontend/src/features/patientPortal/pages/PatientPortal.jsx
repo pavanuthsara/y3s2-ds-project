@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PatientLogin } from '../components/PatientLogin';
 import { PatientDashboard } from '../components/PatientDashboard';
+import { PatientProfileForm, createProfileFormState } from '../components/PatientProfileForm';
 import { FileUpload } from '../components/FileUpload';
 import { FileList } from '../components/FileList';
 import AppointmentBookingForm from '../../appointments/components/AppointmentBookingForm';
@@ -13,6 +14,10 @@ export function PatientPortal() {
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState('');
+  const [profileForm, setProfileForm] = useState(createProfileFormState(null));
+  const [profileFormBusy, setProfileFormBusy] = useState(false);
+  const [profileFormError, setProfileFormError] = useState('');
+  const [profileFormMessage, setProfileFormMessage] = useState('');
   const [refreshReports, setRefreshReports] = useState(0);
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -45,7 +50,7 @@ export function PatientPortal() {
         setProfile(data);
       } catch (err) {
         setProfile(null);
-        setProfileError(err.message || 'Failed to load patient profile');
+        setProfileError(err.status === 404 ? '' : (err.message || 'Failed to load patient profile'));
       } finally {
         setProfileLoading(false);
       }
@@ -53,6 +58,12 @@ export function PatientPortal() {
 
     fetchProfile();
   }, [session]);
+
+  useEffect(() => {
+    setProfileForm(createProfileFormState(profile));
+    setProfileFormError('');
+    setProfileFormMessage('');
+  }, [profile]);
 
   const handleLoginSuccess = (result) => {
     const sessionData = {
@@ -70,6 +81,10 @@ export function PatientPortal() {
     setProfile(null);
     setProfileError('');
     setProfileLoading(false);
+    setProfileForm(createProfileFormState(null));
+    setProfileFormBusy(false);
+    setProfileFormError('');
+    setProfileFormMessage('');
     localStorage.removeItem('patientSession');
     setActiveTab('dashboard');
   };
@@ -84,6 +99,34 @@ export function PatientPortal() {
       ...data,
       slotId: data.slotId,
     });
+  };
+
+  const handleProfileFormChange = (event) => {
+    const { name, value } = event.target;
+    setProfileForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  };
+
+  const handleProfileSubmit = async (event) => {
+    event.preventDefault();
+    setProfileFormBusy(true);
+    setProfileFormError('');
+    setProfileFormMessage('');
+
+    try {
+      const savedProfile = profile
+        ? await patientAPI.updateProfile(profileForm)
+        : await patientAPI.createProfile(profileForm);
+
+      setProfile(savedProfile);
+      setProfileFormMessage(profile ? 'Profile updated successfully.' : 'Profile created successfully.');
+    } catch (err) {
+      setProfileFormError(err.message || 'Failed to save profile');
+    } finally {
+      setProfileFormBusy(false);
+    }
   };
 
   if (!session) {
@@ -151,9 +194,21 @@ export function PatientPortal() {
 
         {/* Tab Content */}
         {activeTab === 'dashboard' && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Welcome to Your Dashboard</h2>
-            <p className="text-gray-600">Use the tabs above to manage your appointments, files, and profile information.</p>
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Welcome to Your Dashboard</h2>
+              <p className="text-gray-600">Use the tabs above to manage your appointments, files, and profile information.</p>
+            </div>
+
+            <PatientProfileForm
+              profile={profile}
+              form={profileForm}
+              busy={profileFormBusy}
+              error={profileFormError}
+              message={profileFormMessage}
+              onChange={handleProfileFormChange}
+              onSubmit={handleProfileSubmit}
+            />
           </div>
         )}
 

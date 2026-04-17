@@ -14,6 +14,21 @@ const clearToken = () => {
   localStorage.removeItem(LEGACY_TOKEN_KEY);
 };
 
+const createApiError = async (response, fallbackMessage) => {
+  let message = fallbackMessage;
+
+  try {
+    const error = await response.json();
+    message = error.message || fallbackMessage;
+  } catch {
+    message = fallbackMessage;
+  }
+
+  const apiError = new Error(message);
+  apiError.status = response.status;
+  return apiError;
+};
+
 // Auth headers
 const getHeaders = (includeAuth = true) => {
   const headers = {
@@ -87,8 +102,7 @@ export const patientAPI = {
     });
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch profile');
+      throw await createApiError(response, 'Failed to fetch profile');
     }
     
     return response.json();
@@ -102,8 +116,7 @@ export const patientAPI = {
     });
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to create profile');
+      throw await createApiError(response, 'Failed to create profile');
     }
     
     return response.json();
@@ -117,8 +130,7 @@ export const patientAPI = {
     });
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to update profile');
+      throw await createApiError(response, 'Failed to update profile');
     }
     
     return response.json();

@@ -32,11 +32,28 @@ export function FileList({ patientId, refreshTrigger }) {
     setDeleting(reportId);
     try {
       await reportsAPI.deleteReport(patientId, reportId);
-      setReports(reports.filter((r) => r.id !== reportId));
+      setReports((current) => current.filter((report) => report.id !== reportId));
     } catch (err) {
       setError(err.message);
     } finally {
       setDeleting(null);
+    }
+  };
+
+  const handleViewReport = (report) => {
+    if (!report.downloadUrl) {
+      setError('This report does not have a download link yet.');
+      return;
+    }
+
+    const reportUrl = report.downloadUrl.startsWith('http')
+      ? report.downloadUrl
+      : `http://localhost:8082${report.downloadUrl}`;
+
+    const openedWindow = window.open(reportUrl, '_blank', 'noopener,noreferrer');
+
+    if (!openedWindow) {
+      setError('Unable to open the report. Allow pop-ups and try again.');
     }
   };
 
@@ -132,9 +149,17 @@ export function FileList({ patientId, refreshTrigger }) {
 
                 <div className="flex gap-2 flex-shrink-0">
                   <button
+                    onClick={() => handleViewReport(report)}
+                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors text-sm font-medium"
+                    type="button"
+                  >
+                    View
+                  </button>
+                  <button
                     disabled={deleting === report.id}
                     onClick={() => handleDelete(report.id)}
                     className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors disabled:bg-gray-200 disabled:text-gray-500 text-sm font-medium"
+                    type="button"
                   >
                     {deleting === report.id ? 'Deleting...' : 'Delete'}
                   </button>
