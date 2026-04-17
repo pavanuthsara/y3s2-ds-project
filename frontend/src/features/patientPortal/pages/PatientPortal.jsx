@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PatientLogin } from '../components/PatientLogin';
+import { PatientAuth } from '../components/PatientAuth';
 import { PatientDashboard } from '../components/PatientDashboard';
 import { PatientHistoryPanel } from '../components/PatientHistoryPanel';
 import { PatientProfileForm, createProfileFormState } from '../components/PatientProfileForm';
@@ -131,14 +131,14 @@ export function PatientPortal() {
   };
 
   if (!session) {
-    return <PatientLogin onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => {}} />;
+    return <PatientAuth onLoginSuccess={handleLoginSuccess} />;
   }
 
   const patientProfileId = profile?.id ?? null;
   const appointmentPatientId = profile?.username || session.username;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex-grow flex flex-col pt-4 pb-12 w-full max-w-full">
       <PatientDashboard
         session={session}
         profile={profile}
@@ -147,64 +147,64 @@ export function PatientPortal() {
         onLogout={handleLogout}
       />
 
-      <div className="max-w-6xl mx-auto px-8 py-6">
-        <div className="flex flex-wrap gap-4 border-b border-gray-200 mb-8">
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 mt-6 bg-white/70 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/90">
+        <div className="flex flex-wrap gap-2 border-b border-slate-200/60 mb-8 pb-1">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`px-4 py-3 font-semibold transition-colors ${
+            className={`px-5 py-3 font-semibold text-sm rounded-t-lg transition-all ${
               activeTab === 'dashboard'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
+                ? 'text-sky-600 border-b-2 border-sky-500 bg-white/50'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
             }`}
           >
             Dashboard
           </button>
           <button
             onClick={() => setActiveTab('files')}
-            className={`px-4 py-3 font-semibold transition-colors ${
+            className={`px-5 py-3 font-semibold text-sm rounded-t-lg transition-all ${
               activeTab === 'files'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
+                ? 'text-sky-600 border-b-2 border-sky-500 bg-white/50'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
             }`}
           >
             Files
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`px-4 py-3 font-semibold transition-colors ${
+            className={`px-5 py-3 font-semibold text-sm rounded-t-lg transition-all ${
               activeTab === 'history'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
+                ? 'text-sky-600 border-b-2 border-sky-500 bg-white/50'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
             }`}
           >
             History
           </button>
           <button
             onClick={() => setActiveTab('prescriptions')}
-            className={`px-4 py-3 font-semibold transition-colors ${
+            className={`px-5 py-3 font-semibold text-sm rounded-t-lg transition-all ${
               activeTab === 'prescriptions'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
+                ? 'text-sky-600 border-b-2 border-sky-500 bg-white/50'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
             }`}
           >
             Prescriptions
           </button>
           <button
             onClick={() => setActiveTab('book-appointment')}
-            className={`px-4 py-3 font-semibold transition-colors ${
+            className={`px-5 py-3 font-semibold text-sm rounded-t-lg transition-all ${
               activeTab === 'book-appointment'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
+                ? 'text-sky-600 border-b-2 border-sky-500 bg-white/50'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
             }`}
           >
             Book Appointment
           </button>
           <button
             onClick={() => setActiveTab('my-appointments')}
-            className={`px-4 py-3 font-semibold transition-colors ${
+            className={`px-5 py-3 font-semibold text-sm rounded-t-lg transition-all ${
               activeTab === 'my-appointments'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
+                ? 'text-sky-600 border-b-2 border-sky-500 bg-white/50'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
             }`}
           >
             My Appointments
@@ -214,8 +214,8 @@ export function PatientPortal() {
         {activeTab === 'dashboard' && (
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Welcome to Your Dashboard</h2>
-              <p className="text-gray-600">Use the tabs above to manage your appointments, files, history, and profile information.</p>
+              <h2 className="text-2xl font-bold text-slate-800 mb-2">Welcome to Your Dashboard</h2>
+              <p className="text-slate-600 mb-6 font-medium">Manage your appointments, secure files, health history, and profile information.</p>
             </div>
 
             <PatientProfileForm
@@ -241,10 +241,10 @@ export function PatientPortal() {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-lg p-8 text-gray-700">
+            <div className="bg-white/50 backdrop-blur-sm rounded-lg p-8 text-slate-700 border border-slate-200/50 shadow-sm">
               {profileLoading
-                ? 'Loading your patient profile before opening reports...'
-                : 'Your patient profile is not available yet. Create your profile first to upload and manage reports.'}
+                ? 'Loading your patient profile securely before opening reports...'
+                : 'Your patient profile is not available yet. Please complete your profile to upload and manage reports.'}
             </div>
           )
         )}
@@ -258,7 +258,7 @@ export function PatientPortal() {
         )}
 
         {activeTab === 'book-appointment' && (
-          <div className="bg-white rounded-lg p-8">
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/80 p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
             <AppointmentBookingForm
               onSubmit={handleAppointmentBooking}
               patientIdFromSession={appointmentPatientId}
@@ -267,7 +267,7 @@ export function PatientPortal() {
         )}
 
         {activeTab === 'my-appointments' && (
-          <div className="bg-white rounded-lg p-8">
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/80 p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
             <AppointmentHistoryPage patientIdFromSession={appointmentPatientId} />
           </div>
         )}
