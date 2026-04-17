@@ -1,0 +1,382 @@
+{
+  "info": {
+    "_postman_id": "payment-service-test-collection",
+    "name": "Healthcare API - Payment Service",
+    "description": "Complete collection for testing Payment Service with all endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login - Get Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('auth_token', jsonData.token);",
+                  "    pm.environment.set('user_id', jsonData.user.id);",
+                  "    console.log('✅ Token saved to environment');",
+                  "} else {",
+                  "    console.log('❌ Login failed');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient@test.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "protocol": "http",
+              "host": ["{{base_url_host}}"],
+              "port": "{{base_url_port}}",
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login and get JWT authentication token"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payment Service - Health & Info",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_url}}/api/payments/health",
+              "protocol": "http",
+              "host": ["{{payment_url_host}}"],
+              "port": "{{payment_url_port}}",
+              "path": ["api", "payments", "health"]
+            },
+            "description": "Check if Payment Service is running"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payment Service - Core Operations",
+      "item": [
+        {
+          "name": "1. Initiate Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('transaction_id', jsonData.transactionId);",
+                  "    pm.environment.set('client_secret', jsonData.clientSecret);",
+                  "    console.log('✅ Transaction ID saved: ' + jsonData.transactionId);",
+                  "} else {",
+                  "    console.log('❌ Payment initiation failed');",
+                  "    console.log(pm.response.text());",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"patientId\": \"patient-123\",\n  \"amount\": 5000.00,\n  \"currency\": \"LKR\",\n  \"description\": \"Consultation Fee\"\n}"
+            },
+            "url": {
+              "raw": "{{payment_url}}/api/payments/initiate",
+              "protocol": "http",
+              "host": ["{{payment_url_host}}"],
+              "port": "{{payment_url_port}}",
+              "path": ["api", "payments", "initiate"]
+            },
+            "description": "Start a new payment transaction"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Confirm Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transactionId\": \"{{transaction_id}}\",\n  \"paymentMethodId\": \"pm_test_visa\"\n}"
+            },
+            "url": {
+              "raw": "{{payment_url}}/api/payments/confirm",
+              "protocol": "http",
+              "host": ["{{payment_url_host}}"],
+              "port": "{{payment_url_port}}",
+              "path": ["api", "payments", "confirm"]
+            },
+            "description": "Confirm and complete a payment"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get Transaction Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_url}}/api/payments/transaction/{{transaction_id}}",
+              "protocol": "http",
+              "host": ["{{payment_url_host}}"],
+              "port": "{{payment_url_port}}",
+              "path": ["api", "payments", "transaction", "{{transaction_id}}"]
+            },
+            "description": "Get details of a specific transaction"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get Patient Payment History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_url}}/api/payments/patient/patient-123/history",
+              "protocol": "http",
+              "host": ["{{payment_url_host}}"],
+              "port": "{{payment_url_port}}",
+              "path": ["api", "payments", "patient", "patient-123", "history"]
+            },
+            "description": "Get all payment transactions for a patient"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Refund Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_url}}/api/payments/refund/{{transaction_id}}",
+              "protocol": "http",
+              "host": ["{{payment_url_host}}"],
+              "port": "{{payment_url_port}}",
+              "path": ["api", "payments", "refund", "{{transaction_id}}"]
+            },
+            "description": "Refund a completed payment"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payment Service - Admin Operations",
+      "item": [
+        {
+          "name": "Get All Transactions (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{payment_url}}/api/payments/admin/all",
+              "protocol": "http",
+              "host": ["{{payment_url_host}}"],
+              "port": "{{payment_url_port}}",
+              "path": ["api", "payments", "admin", "all"]
+            },
+            "description": "Get all transactions (requires ADMIN role)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Stripe Webhooks",
+      "item": [
+        {
+          "name": "Payment Intent Succeeded Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Stripe-Signature",
+                "value": "t=1614556800,v1=test_signature",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"evt_1234567890\",\n  \"object\": \"event\",\n  \"api_version\": \"2020-08-27\",\n  \"created\": 1614556800,\n  \"data\": {\n    \"object\": {\n      \"id\": \"pi_1234567890\",\n      \"object\": \"payment_intent\",\n      \"status\": \"succeeded\",\n      \"amount\": 500000,\n      \"currency\": \"lkr\",\n      \"metadata\": {\n        \"transactionId\": \"{{transaction_id}}\",\n        \"patientId\": \"patient-123\"\n      }\n    }\n  },\n  \"type\": \"payment_intent.succeeded\"\n}"
+            },
+            "url": {
+              "raw": "{{payment_url}}/webhooks/stripe",
+              "protocol": "http",
+              "host": ["{{payment_url_host}}"],
+              "port": "{{payment_url_port}}",
+              "path": ["webhooks", "stripe"]
+            },
+            "description": "Test Stripe webhook for successful payment"
+          },
+          "response": []
+        },
+        {
+          "name": "Payment Intent Failed Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Stripe-Signature",
+                "value": "t=1614556800,v1=test_signature",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"evt_1234567891\",\n  \"object\": \"event\",\n  \"api_version\": \"2020-08-27\",\n  \"created\": 1614556801,\n  \"data\": {\n    \"object\": {\n      \"id\": \"pi_1234567891\",\n      \"object\": \"payment_intent\",\n      \"status\": \"requires_action\",\n      \"amount\": 500000,\n      \"currency\": \"lkr\",\n      \"metadata\": {\n        \"transactionId\": \"{{transaction_id}}\",\n        \"patientId\": \"patient-123\"\n      },\n      \"last_payment_error\": {\n        \"message\": \"Your card was declined\"\n      }\n    }\n  },\n  \"type\": \"payment_intent.payment_failed\"\n}"
+            },
+            "url": {
+              "raw": "{{payment_url}}/webhooks/stripe",
+              "protocol": "http",
+              "host": ["{{payment_url_host}}"],
+              "port": "{{payment_url_port}}",
+              "path": ["webhooks", "stripe"]
+            },
+            "description": "Test Stripe webhook for failed payment"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url_host",
+      "value": "localhost",
+      "type": "string"
+    },
+    {
+      "key": "base_url_port",
+      "value": "8080",
+      "type": "string"
+    },
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "payment_url_host",
+      "value": "localhost",
+      "type": "string"
+    },
+    {
+      "key": "payment_url_port",
+      "value": "8086",
+      "type": "string"
+    },
+    {
+      "key": "payment_url",
+      "value": "http://localhost:8086",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "transaction_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "client_secret",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
