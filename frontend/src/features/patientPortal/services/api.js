@@ -132,7 +132,33 @@ export const patientAPI = {
     if (!response.ok) {
       throw await createApiError(response, 'Failed to update profile');
     }
-    
+
+    return response.json();
+  },
+
+  getHistory: async (patientId) => {
+    const response = await fetch(`${API_BASE_URL}/patients/${patientId}/history`, {
+      method: 'GET',
+      headers: getHeaders(true),
+    });
+
+    if (!response.ok) {
+      throw await createApiError(response, 'Failed to fetch patient history');
+    }
+
+    return response.json();
+  },
+
+  getPrescriptions: async (patientId) => {
+    const response = await fetch(`${API_BASE_URL}/patients/${patientId}/prescriptions`, {
+      method: 'GET',
+      headers: getHeaders(true),
+    });
+
+    if (!response.ok) {
+      throw await createApiError(response, 'Failed to fetch prescriptions');
+    }
+
     return response.json();
   },
 };

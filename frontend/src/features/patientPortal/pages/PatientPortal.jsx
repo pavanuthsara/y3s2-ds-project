@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { PatientLogin } from '../components/PatientLogin';
 import { PatientDashboard } from '../components/PatientDashboard';
+import { PatientHistoryPanel } from '../components/PatientHistoryPanel';
 import { PatientProfileForm, createProfileFormState } from '../components/PatientProfileForm';
+import { PatientPrescriptionsPanel } from '../components/PatientPrescriptionsPanel';
 import { FileUpload } from '../components/FileUpload';
 import { FileList } from '../components/FileList';
 import AppointmentBookingForm from '../../appointments/components/AppointmentBookingForm';
@@ -21,15 +23,14 @@ export function PatientPortal() {
   const [refreshReports, setRefreshReports] = useState(0);
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Check if already logged in on mount
   useEffect(() => {
-    if (isLoggedIn()) {
-      // If we have a token, we can assume session is active
-      // In a real app, you'd verify the token with the backend
-      const savedSession = localStorage.getItem('patientSession');
-      if (savedSession) {
-        setSession(JSON.parse(savedSession));
-      }
+    if (!isLoggedIn()) {
+      return;
+    }
+
+    const savedSession = localStorage.getItem('patientSession');
+    if (savedSession) {
+      setSession(JSON.parse(savedSession));
     }
   }, []);
 
@@ -71,6 +72,7 @@ export function PatientPortal() {
       email: result.email,
       role: result.role,
     };
+
     setSession(sessionData);
     localStorage.setItem('patientSession', JSON.stringify(sessionData));
   };
@@ -90,7 +92,6 @@ export function PatientPortal() {
   };
 
   const handleUploadSuccess = () => {
-    // Trigger refresh of file list
     setRefreshReports((prev) => prev + 1);
   };
 
@@ -138,7 +139,6 @@ export function PatientPortal() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Dashboard Header & Profile */}
       <PatientDashboard
         session={session}
         profile={profile}
@@ -147,9 +147,8 @@ export function PatientPortal() {
         onLogout={handleLogout}
       />
 
-      {/* Tab Navigation */}
       <div className="max-w-6xl mx-auto px-8 py-6">
-        <div className="flex gap-4 border-b border-gray-200 mb-8">
+        <div className="flex flex-wrap gap-4 border-b border-gray-200 mb-8">
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`px-4 py-3 font-semibold transition-colors ${
@@ -158,7 +157,7 @@ export function PatientPortal() {
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            📋 Dashboard
+            Dashboard
           </button>
           <button
             onClick={() => setActiveTab('files')}
@@ -168,7 +167,27 @@ export function PatientPortal() {
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            📁 Files
+            Files
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`px-4 py-3 font-semibold transition-colors ${
+              activeTab === 'history'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            History
+          </button>
+          <button
+            onClick={() => setActiveTab('prescriptions')}
+            className={`px-4 py-3 font-semibold transition-colors ${
+              activeTab === 'prescriptions'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            Prescriptions
           </button>
           <button
             onClick={() => setActiveTab('book-appointment')}
@@ -178,7 +197,7 @@ export function PatientPortal() {
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            📅 Book Appointment
+            Book Appointment
           </button>
           <button
             onClick={() => setActiveTab('my-appointments')}
@@ -188,16 +207,15 @@ export function PatientPortal() {
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            🏥 My Appointments
+            My Appointments
           </button>
         </div>
 
-        {/* Tab Content */}
         {activeTab === 'dashboard' && (
           <div className="space-y-8">
             <div>
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Welcome to Your Dashboard</h2>
-              <p className="text-gray-600">Use the tabs above to manage your appointments, files, and profile information.</p>
+              <p className="text-gray-600">Use the tabs above to manage your appointments, files, history, and profile information.</p>
             </div>
 
             <PatientProfileForm
@@ -231,9 +249,17 @@ export function PatientPortal() {
           )
         )}
 
+        {activeTab === 'history' && (
+          <PatientHistoryPanel patientId={patientProfileId} />
+        )}
+
+        {activeTab === 'prescriptions' && (
+          <PatientPrescriptionsPanel patientId={patientProfileId} />
+        )}
+
         {activeTab === 'book-appointment' && (
           <div className="bg-white rounded-lg p-8">
-            <AppointmentBookingForm 
+            <AppointmentBookingForm
               onSubmit={handleAppointmentBooking}
               patientIdFromSession={appointmentPatientId}
             />
