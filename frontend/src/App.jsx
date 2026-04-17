@@ -1,4 +1,5 @@
 import './App.css'
+
 import { Routes, Route, Link, Navigate } from 'react-router-dom'
 import Home from './components/Home'
 import About from './components/About'
@@ -6,6 +7,8 @@ import Contact from './components/Contact'
 import PatientPortal from './features/patientPortal/pages/PatientPortal'
 import DoctorPortal from './features/doctorPortal/pages/DoctorPortal'
 import { PaymentPage } from './features/payments/pages'
+import HealthLanding from './components/HealthLanding'
+
 
 function App() {
   return (
@@ -32,7 +35,7 @@ function App() {
 
       <main className="page-shell">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HealthLanding />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/patient" element={<PatientPortal />} />
