@@ -1,29 +1,70 @@
 import { useState, useEffect } from 'react';
 import { PatientLogin } from '../components/PatientLogin';
 import { PatientDashboard } from '../components/PatientDashboard';
+import { PatientHistoryPanel } from '../components/PatientHistoryPanel';
+import { PatientProfileForm, createProfileFormState } from '../components/PatientProfileForm';
+import { PatientPrescriptionsPanel } from '../components/PatientPrescriptionsPanel';
 import { FileUpload } from '../components/FileUpload';
 import { FileList } from '../components/FileList';
 import AppointmentBookingForm from '../../appointments/components/AppointmentBookingForm';
 import AppointmentHistoryPage from '../../appointments/pages/AppointmentHistoryPage';
 import appointmentService from '../../appointments/services/appointmentService';
-import { authAPI, isLoggedIn } from '../services/api';
+import { authAPI, isLoggedIn, patientAPI } from '../services/api';
 
 export function PatientPortal() {
   const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [profileForm, setProfileForm] = useState(createProfileFormState(null));
+  const [profileFormBusy, setProfileFormBusy] = useState(false);
+  const [profileFormError, setProfileFormError] = useState('');
+  const [profileFormMessage, setProfileFormMessage] = useState('');
   const [refreshReports, setRefreshReports] = useState(0);
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Check if already logged in on mount
   useEffect(() => {
-    if (isLoggedIn()) {
-      // If we have a token, we can assume session is active
-      // In a real app, you'd verify the token with the backend
-      const savedSession = localStorage.getItem('patientSession');
-      if (savedSession) {
-        setSession(JSON.parse(savedSession));
-      }
+    if (!isLoggedIn()) {
+      return;
+    }
+
+    const savedSession = localStorage.getItem('patientSession');
+    if (savedSession) {
+      setSession(JSON.parse(savedSession));
     }
   }, []);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!session) {
+        setProfile(null);
+        setProfileError('');
+        setProfileLoading(false);
+        return;
+      }
+
+      setProfileLoading(true);
+      setProfileError('');
+
+      try {
+        const data = await patientAPI.getMyProfile();
+        setProfile(data);
+      } catch (err) {
+        setProfile(null);
+        setProfileError(err.status === 404 ? '' : (err.message || 'Failed to load patient profile'));
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [session]);
+
+  useEffect(() => {
+    setProfileForm(createProfileFormState(profile));
+    setProfileFormError('');
+    setProfileFormMessage('');
+  }, [profile]);
 
   const handleLoginSuccess = (result) => {
     const sessionData = {
@@ -31,6 +72,7 @@ export function PatientPortal() {
       email: result.email,
       role: result.role,
     };
+
     setSession(sessionData);
     localStorage.setItem('patientSession', JSON.stringify(sessionData));
   };
@@ -38,12 +80,18 @@ export function PatientPortal() {
   const handleLogout = () => {
     authAPI.logout();
     setSession(null);
+    setProfile(null);
+    setProfileError('');
+    setProfileLoading(false);
+    setProfileForm(createProfileFormState(null));
+    setProfileFormBusy(false);
+    setProfileFormError('');
+    setProfileFormMessage('');
     localStorage.removeItem('patientSession');
     setActiveTab('dashboard');
   };
 
   const handleUploadSuccess = () => {
-    // Trigger refresh of file list
     setRefreshReports((prev) => prev + 1);
   };
 
@@ -54,18 +102,53 @@ export function PatientPortal() {
     });
   };
 
+  const handleProfileFormChange = (event) => {
+    const { name, value } = event.target;
+    setProfileForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  };
+
+  const handleProfileSubmit = async (event) => {
+    event.preventDefault();
+    setProfileFormBusy(true);
+    setProfileFormError('');
+    setProfileFormMessage('');
+
+    try {
+      const savedProfile = profile
+        ? await patientAPI.updateProfile(profileForm)
+        : await patientAPI.createProfile(profileForm);
+
+      setProfile(savedProfile);
+      setProfileFormMessage(profile ? 'Profile updated successfully.' : 'Profile created successfully.');
+    } catch (err) {
+      setProfileFormError(err.message || 'Failed to save profile');
+    } finally {
+      setProfileFormBusy(false);
+    }
+  };
+
   if (!session) {
     return <PatientLogin onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => {}} />;
   }
 
+  const patientProfileId = profile?.id ?? null;
+  const appointmentPatientId = profile?.username || session.username;
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Dashboard Header & Profile */}
-      <PatientDashboard session={session} onLogout={handleLogout} />
+      <PatientDashboard
+        session={session}
+        profile={profile}
+        loading={profileLoading}
+        error={profileError}
+        onLogout={handleLogout}
+      />
 
-      {/* Tab Navigation */}
       <div className="max-w-6xl mx-auto px-8 py-6">
-        <div className="flex gap-4 border-b border-gray-200 mb-8">
+        <div className="flex flex-wrap gap-4 border-b border-gray-200 mb-8">
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`px-4 py-3 font-semibold transition-colors ${
@@ -74,7 +157,7 @@ export function PatientPortal() {
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            📋 Dashboard
+            Dashboard
           </button>
           <button
             onClick={() => setActiveTab('files')}
@@ -84,7 +167,27 @@ export function PatientPortal() {
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            📁 Files
+            Files
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`px-4 py-3 font-semibold transition-colors ${
+              activeTab === 'history'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            History
+          </button>
+          <button
+            onClick={() => setActiveTab('prescriptions')}
+            className={`px-4 py-3 font-semibold transition-colors ${
+              activeTab === 'prescriptions'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            Prescriptions
           </button>
           <button
             onClick={() => setActiveTab('book-appointment')}
@@ -94,7 +197,7 @@ export function PatientPortal() {
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            📅 Book Appointment
+            Book Appointment
           </button>
           <button
             onClick={() => setActiveTab('my-appointments')}
@@ -104,41 +207,68 @@ export function PatientPortal() {
                 : 'text-gray-600 hover:text-gray-800'
             }`}
           >
-            🏥 My Appointments
+            My Appointments
           </button>
         </div>
 
-        {/* Tab Content */}
         {activeTab === 'dashboard' && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Welcome to Your Dashboard</h2>
-            <p className="text-gray-600">Use the tabs above to manage your appointments, files, and profile information.</p>
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Welcome to Your Dashboard</h2>
+              <p className="text-gray-600">Use the tabs above to manage your appointments, files, history, and profile information.</p>
+            </div>
+
+            <PatientProfileForm
+              profile={profile}
+              form={profileForm}
+              busy={profileFormBusy}
+              error={profileFormError}
+              message={profileFormMessage}
+              onChange={handleProfileFormChange}
+              onSubmit={handleProfileSubmit}
+            />
           </div>
         )}
 
         {activeTab === 'files' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1">
-              <FileUpload patientId={session.patientId || 2} onUploadSuccess={handleUploadSuccess} />
+          patientProfileId ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-1">
+                <FileUpload patientId={patientProfileId} onUploadSuccess={handleUploadSuccess} />
+              </div>
+              <div className="lg:col-span-2">
+                <FileList patientId={patientProfileId} refreshTrigger={refreshReports} />
+              </div>
             </div>
-            <div className="lg:col-span-2">
-              <FileList patientId={session.patientId || 2} refreshTrigger={refreshReports} />
+          ) : (
+            <div className="bg-white rounded-lg p-8 text-gray-700">
+              {profileLoading
+                ? 'Loading your patient profile before opening reports...'
+                : 'Your patient profile is not available yet. Create your profile first to upload and manage reports.'}
             </div>
-          </div>
+          )
+        )}
+
+        {activeTab === 'history' && (
+          <PatientHistoryPanel patientId={patientProfileId} />
+        )}
+
+        {activeTab === 'prescriptions' && (
+          <PatientPrescriptionsPanel patientId={patientProfileId} />
         )}
 
         {activeTab === 'book-appointment' && (
           <div className="bg-white rounded-lg p-8">
-            <AppointmentBookingForm 
+            <AppointmentBookingForm
               onSubmit={handleAppointmentBooking}
-              patientIdFromSession={session.username}
+              patientIdFromSession={appointmentPatientId}
             />
           </div>
         )}
 
         {activeTab === 'my-appointments' && (
           <div className="bg-white rounded-lg p-8">
-            <AppointmentHistoryPage patientIdFromSession={session.patientId} />
+            <AppointmentHistoryPage patientIdFromSession={appointmentPatientId} />
           </div>
         )}
       </div>

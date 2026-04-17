@@ -52,6 +52,15 @@ public class PrescriptionController {
 		}
 	}
 
+	@GetMapping("/patient/{patientId}")
+	public ResponseEntity<?> getPrescriptionsByPatientId(@PathVariable String patientId) {
+		try {
+			return ResponseEntity.ok(prescriptionService.getPrescriptionsByPatientId(patientId));
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+		}
+	}
+
 	private String validateDoctorContext(String userId, String userRole) {
 		if (!StringUtils.hasText(userId)) {
 			throw new IllegalArgumentException("Missing authenticated user context");

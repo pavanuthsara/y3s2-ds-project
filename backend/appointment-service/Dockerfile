@@ -18,7 +18,7 @@ COPY src ./src
 RUN mvn package -DskipTests -B
 
 # ---- Stage 2: Run ----
-FROM openjdk:17-jre-slim
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
