@@ -1,0 +1,9 @@
+/Users/kaveeshaathukorala/blog-api/y3s2-ds-project/backend/notification-service/src/main/java/com/se73/notification_service/dto/SendNotificationRequest.java
+/Users/kaveeshaathukorala/blog-api/y3s2-ds-project/backend/notification-service/src/main/java/com/se73/notification_service/repository/NotificationRepository.java
+/Users/kaveeshaathukorala/blog-api/y3s2-ds-project/backend/notification-service/src/main/java/com/se73/notification_service/controller/NotificationController.java
+/Users/kaveeshaathukorala/blog-api/y3s2-ds-project/backend/notification-service/src/main/java/com/se73/notification_service/dto/NotificationResponse.java
+/Users/kaveeshaathukorala/blog-api/y3s2-ds-project/backend/notification-service/src/main/java/com/se73/notification_service/NotificationServiceApplication.java
+/Users/kaveeshaathukorala/blog-api/y3s2-ds-project/backend/notification-service/src/main/java/com/se73/notification_service/service/EmailService.java
+/Users/kaveeshaathukorala/blog-api/y3s2-ds-project/backend/notification-service/src/main/java/com/se73/notification_service/config/SecurityConfig.java
+/Users/kaveeshaathukorala/blog-api/y3s2-ds-project/backend/notification-service/src/main/java/com/se73/notification_service/entity/Notification.java
+/Users/kaveeshaathukorala/blog-api/y3s2-ds-project/backend/notification-service/src/main/java/com/se73/notification_service/service/NotificationService.java

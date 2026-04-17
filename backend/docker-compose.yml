@@ -207,6 +207,79 @@ services:
       timeout: 5s
       retries: 5
 
+  # PAYMENT SERVICE
+  payment-postgres:
+    image: postgres:16-alpine
+    container_name: payment-postgres
+    environment:
+      POSTGRES_DB: payment_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5437:5432"
+    volumes:
+      - payment_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    ports:
+      - "8086:8086"
+    environment:
+      DB_HOST: payment-postgres
+      DB_PORT: 5432
+      DB_NAME: payment_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:sk_test_51TMvcaA621M92XkWJGzMnqZVd9L8ym0EamEll411jtYQZdKhJS3gAa6HSyA8zVJbFFEsrd4WzIf4RkXGtrFal7M9002YvmoSuX}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:whsec_test_secret}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:pk_test_key}
+      NOTIFICATION_SERVICE_URL: http://notification-service:8088/api/notifications
+    depends_on:
+      payment-postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # NOTIFICATION SERVICE
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    ports:
+      - "8088:8088"
+    environment:
+      APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+      MAIL_HOST: ${MAIL_HOST:smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:587}
+      MAIL_USERNAME: ${MAIL_USERNAME:}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:}
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8088/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
 networks:
   dsproject-network:
     driver: bridge
