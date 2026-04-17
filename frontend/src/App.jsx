@@ -5,6 +5,7 @@ import Home from './components/Home'
 import About from './components/About'
 import Contact from './components/Contact'
 import DoctorAvailabilityPage from './features/doctorAvailability/pages/DoctorAvailabilityPage'
+import PatientPortal from './features/patientPortal/pages/PatientPortal'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -23,6 +24,9 @@ function App() {
             <Link to="/contact">Contact</Link>
           </li>
           <li>
+            <Link to="/patient">Patient Portal</Link>
+          </li>
+          <li>
             <Link to="/doctor/availability">Doctor Availability</Link>
           </li>
         </ul>
@@ -33,6 +37,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/patient" element={<PatientPortal />} />
           <Route path="/doctor/availability" element={<DoctorAvailabilityPage />} />
         </Routes>
       </main>
