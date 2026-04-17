@@ -131,7 +131,7 @@ function DoctorPortal({ initialTab = 'profile' }) {
     setActiveTab('profile');
   };
 
-  if (initialTab === 'availability' && !session) {
+  if ((initialTab === 'availability' || initialTab === 'prescriptions') && !session) {
     return <Navigate replace to="/doctor" />;
   }
 

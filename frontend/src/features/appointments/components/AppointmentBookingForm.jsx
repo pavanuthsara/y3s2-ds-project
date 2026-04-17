@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import DoctorSlotSelector from './DoctorSlotSelector';
+import { PaymentModal } from '../../payments/components';
 import '../styles/AppointmentForm.css';
 
 const DAY_NAME_TO_INDEX = {
@@ -61,6 +62,9 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [appointmentId, setAppointmentId] = useState(null);
+  const [appointmentAmount, setAppointmentAmount] = useState(0);
 
   // Auto-populate fields when slot is selected
   useEffect(() => {
@@ -147,23 +151,38 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
     }
 
     try {
-      await onSubmit(formData);
-      setSuccess(true);
-      setTimeout(() => {
-        setFormData({
-          patientId: patientIdFromSession || '',
-          doctorUsername: '',
-          slotId: '',
-          appointmentDateTime: '',
-          appointmentMode: 'VIRTUAL',
-          hospital: '',
-          notes: '',
-        });
-        setSuccess(false);
-      }, 2000);
+      // First create the appointment to get appointmentId
+      const response = await onSubmit(formData);
+      
+      // Extract appointmentId from response (assuming it returns the appointment object)
+      const newAppointmentId = response?.id || response?.appointmentId || 'appointment-' + Date.now();
+      setAppointmentId(newAppointmentId);
+      
+      // Then show payment modal
+      setAppointmentAmount(50000); // Default appointment cost
+      setShowPaymentModal(true);
     } catch (error) {
-      setErrors({ submit: error.message || 'Failed to book appointment' });
+      setErrors({ submit: error.message || 'Failed to create appointment. Please try again.' });
     }
+  };
+
+  const handlePaymentSuccess = async () => {
+    // Payment is complete, close modal and show success
+    setSuccess(true);
+    setShowPaymentModal(false);
+    setTimeout(() => {
+      setFormData({
+        patientId: patientIdFromSession || '',
+        doctorUsername: '',
+        slotId: '',
+        appointmentDateTime: '',
+        appointmentMode: 'VIRTUAL',
+        hospital: '',
+        notes: '',
+      });
+      setSuccess(false);
+      setAppointmentId(null);
+    }, 2000);
   };
 
   return (
@@ -312,10 +331,21 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
             className="btn btn-primary"
             disabled={isLoading}
           >
-            {isLoading ? 'Booking...' : 'Book Appointment'}
+            {isLoading ? 'Processing...' : '💳 Proceed to Payment'}
           </button>
         </form>
       </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        appointmentId={appointmentId}
+        patientId={formData.patientId}
+        amount={appointmentAmount}
+        currency="LKR"
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };

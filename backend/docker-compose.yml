@@ -13,6 +13,7 @@ services:
       DOCTOR_SERVICE_BASE_URL: http://doctor-service:8083/api/doctors
       SYMPTOM_CHECKER_SERVICE_BASE_URL: http://ai-symptom-checker:8087/api/symptoms
       APPOINTMENT_SERVICE_BASE_URL: http://appointment-service:8085/api/appointments
+      PAYMENT_SERVICE_BASE_URL: http://payment-service:8086/api/payments
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
     depends_on:
       auth-service:
@@ -209,6 +210,54 @@ services:
       - dsproject-network
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # PAYMENT SERVICE DATABASE
+  payment-postgres:
+    image: postgres:16-alpine
+    container_name: payment-postgres
+    environment:
+      POSTGRES_DB: payment_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5437:5432"
+    volumes:
+      - payment_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PAYMENT SERVICE
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    ports:
+      - "8086:8086"
+    environment:
+      DB_HOST: payment-postgres
+      DB_PORT: 5432
+      DB_NAME: payment_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      STRIPE_SECRET_KEY: sk_test_51TMvcaA621M92XkWJGzMnqZVd9L8ym0EamEll411jtYQZdKhJS3gAa6HSyA8zVJbFFEsrd4WzIf4RkXGtrFal7M9002YvmoSuX
+      STRIPE_PUBLISHABLE_KEY: pk_test_51TMvcaA621M92XkWlrbInOEX3DYU57VAomEhoDr2ua3WZ5FziPiqDHT5lVLkuM8Js0sZeVo8v0vtjxn6fYgrkMvq00wnPkO2EX
+      JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+    depends_on:
+      payment-postgres:
+        condition: service_healthy
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 5

@@ -8,6 +8,7 @@ import { FileUpload } from '../components/FileUpload';
 import { FileList } from '../components/FileList';
 import AppointmentBookingForm from '../../appointments/components/AppointmentBookingForm';
 import AppointmentHistoryPage from '../../appointments/pages/AppointmentHistoryPage';
+import { TransactionHistory } from '../../payments/components';
 import appointmentService from '../../appointments/services/appointmentService';
 import { authAPI, isLoggedIn, patientAPI } from '../services/api';
 
@@ -209,6 +210,16 @@ export function PatientPortal() {
           >
             My Appointments
           </button>
+          <button
+            onClick={() => setActiveTab('payments')}
+            className={`px-4 py-3 font-semibold transition-colors ${
+              activeTab === 'payments'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            💳 Payments
+          </button>
         </div>
 
         {activeTab === 'dashboard' && (
@@ -269,6 +280,18 @@ export function PatientPortal() {
         {activeTab === 'my-appointments' && (
           <div className="bg-white rounded-lg p-8">
             <AppointmentHistoryPage patientIdFromSession={appointmentPatientId} />
+          </div>
+        )}
+
+        {activeTab === 'payments' && (
+          <div className="bg-white rounded-lg p-8">
+            <TransactionHistory
+              patientId={appointmentPatientId}
+              showActions={true}
+              title="Your Payment History"
+              onViewDetails={(txn) => console.log('View transaction:', txn)}
+              onRefund={(txn) => console.log('Refund transaction:', txn)}
+            />
           </div>
         )}
       </div>
