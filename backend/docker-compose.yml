@@ -10,12 +10,15 @@ services:
     environment:
       AUTH_SERVICE_BASE_URL: http://auth-service:8081/api/auth
       PATIENT_SERVICE_BASE_URL: http://patient-service:8082/api/patients
+      DOCTOR_SERVICE_BASE_URL: http://doctor-service:8083/api/doctors
       SYMPTOM_CHECKER_SERVICE_BASE_URL: http://ai-symptom-checker:8087/api/symptoms
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
     depends_on:
       auth-service:
         condition: service_healthy
       patient-service:
+        condition: service_healthy
+      doctor-service:
         condition: service_healthy
     networks:
       - dsproject-network
@@ -118,6 +121,49 @@ services:
       timeout: 5s
       retries: 5
 
+  # DOCTOR SERVICE
+  doctor-postgres:
+    image: postgres:16-alpine
+    container_name: doctor-postgres
+    environment:
+      POSTGRES_DB: doctor_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - doctor_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  doctor-service:
+    build:
+      context: ./doctor-service
+      dockerfile: Dockerfile
+    container_name: doctor-service
+    ports:
+      - "8083:8083"
+    environment:
+      SERVER_PORT: 8083
+      SPRING_DATASOURCE_URL: jdbc:postgresql://doctor-postgres:5432/doctor_service_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    depends_on:
+      doctor-postgres:
+        condition: service_healthy
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
 networks:
   dsproject-network:
     driver: bridge
@@ -125,3 +171,4 @@ networks:
 volumes:
   auth_postgres_data:
   patient_postgres_data:
+  doctor_postgres_data:

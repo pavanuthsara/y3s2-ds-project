@@ -1,6 +1,7 @@
 package com.se73.api_gateway.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -20,12 +21,15 @@ import java.util.Map;
 @RequestMapping("/api/doctors")
 public class DoctorProfileProxyController {
 
-	private static final String DOCTOR_SERVICE_BASE_URL = "http://localhost:8083/api/doctors";
-
 	private final RestTemplate restTemplate;
+	private final String doctorServiceBaseUrl;
 
-	public DoctorProfileProxyController(RestTemplate restTemplate) {
+	public DoctorProfileProxyController(
+			RestTemplate restTemplate,
+			@Value("${services.doctor.base-url}") String doctorServiceBaseUrl
+	) {
 		this.restTemplate = restTemplate;
+		this.doctorServiceBaseUrl = doctorServiceBaseUrl;
 	}
 
 	@GetMapping
@@ -34,7 +38,7 @@ public class DoctorProfileProxyController {
 		HttpEntity<Void> entity = new HttpEntity<>(headers);
 
 		return restTemplate.exchange(
-				DOCTOR_SERVICE_BASE_URL,
+				doctorServiceBaseUrl,
 				HttpMethod.GET,
 				entity,
 				Object.class
@@ -47,7 +51,7 @@ public class DoctorProfileProxyController {
 		HttpEntity<Void> entity = new HttpEntity<>(headers);
 
 		return restTemplate.exchange(
-				DOCTOR_SERVICE_BASE_URL + "/profile",
+				doctorServiceBaseUrl + "/profile",
 				HttpMethod.GET,
 				entity,
 				Object.class
@@ -63,7 +67,7 @@ public class DoctorProfileProxyController {
 		HttpEntity<Void> entity = new HttpEntity<>(headers);
 
 		return restTemplate.exchange(
-				DOCTOR_SERVICE_BASE_URL + "/" + doctorUsername + "/profile",
+				doctorServiceBaseUrl + "/" + doctorUsername + "/profile",
 				HttpMethod.GET,
 				entity,
 				Object.class
@@ -79,7 +83,7 @@ public class DoctorProfileProxyController {
 		HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
 		return restTemplate.exchange(
-				DOCTOR_SERVICE_BASE_URL + "/profile",
+				doctorServiceBaseUrl + "/profile",
 				HttpMethod.PUT,
 				entity,
 				Object.class
@@ -96,7 +100,7 @@ public class DoctorProfileProxyController {
 		HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
 		return restTemplate.exchange(
-				DOCTOR_SERVICE_BASE_URL + "/" + doctorUsername + "/profile",
+				doctorServiceBaseUrl + "/" + doctorUsername + "/profile",
 				HttpMethod.PUT,
 				entity,
 				Object.class
@@ -112,7 +116,7 @@ public class DoctorProfileProxyController {
 		HttpEntity<Void> entity = new HttpEntity<>(headers);
 
 		return restTemplate.exchange(
-				DOCTOR_SERVICE_BASE_URL + "/" + doctorUsername,
+				doctorServiceBaseUrl + "/" + doctorUsername,
 				HttpMethod.DELETE,
 				entity,
 				Object.class

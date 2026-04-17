@@ -1,6 +1,7 @@
 package com.se73.api_gateway.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -22,12 +23,15 @@ import java.util.UUID;
 @RequestMapping("/api/doctors/availability")
 public class DoctorAvailabilityProxyController {
 
-	private static final String DOCTOR_SERVICE_AVAILABILITY_URL = "http://localhost:8083/api/doctors/availability";
-
 	private final RestTemplate restTemplate;
+	private final String doctorServiceAvailabilityUrl;
 
-	public DoctorAvailabilityProxyController(RestTemplate restTemplate) {
+	public DoctorAvailabilityProxyController(
+			RestTemplate restTemplate,
+			@Value("${services.doctor.base-url}") String doctorServiceBaseUrl
+	) {
 		this.restTemplate = restTemplate;
+		this.doctorServiceAvailabilityUrl = doctorServiceBaseUrl + "/availability";
 	}
 
 	@GetMapping("/all")
@@ -36,7 +40,7 @@ public class DoctorAvailabilityProxyController {
 		HttpEntity<Void> entity = new HttpEntity<>(headers);
 
 		return restTemplate.exchange(
-				DOCTOR_SERVICE_AVAILABILITY_URL + "/all",
+				doctorServiceAvailabilityUrl + "/all",
 				HttpMethod.GET,
 				entity,
 				Object.class
@@ -49,7 +53,7 @@ public class DoctorAvailabilityProxyController {
 		HttpEntity<Void> entity = new HttpEntity<>(headers);
 
 		return restTemplate.exchange(
-				DOCTOR_SERVICE_AVAILABILITY_URL,
+				doctorServiceAvailabilityUrl,
 				HttpMethod.GET,
 				entity,
 				Object.class
@@ -65,7 +69,7 @@ public class DoctorAvailabilityProxyController {
 		HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
 		return restTemplate.exchange(
-				DOCTOR_SERVICE_AVAILABILITY_URL,
+				doctorServiceAvailabilityUrl,
 				HttpMethod.PUT,
 				entity,
 				Object.class
@@ -81,7 +85,7 @@ public class DoctorAvailabilityProxyController {
 		HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
 		return restTemplate.exchange(
-				DOCTOR_SERVICE_AVAILABILITY_URL + "/slots",
+				doctorServiceAvailabilityUrl + "/slots",
 				HttpMethod.POST,
 				entity,
 				Object.class
@@ -97,7 +101,7 @@ public class DoctorAvailabilityProxyController {
 		HttpEntity<Void> entity = new HttpEntity<>(headers);
 
 		return restTemplate.exchange(
-				DOCTOR_SERVICE_AVAILABILITY_URL + "/slots/" + slotId,
+				doctorServiceAvailabilityUrl + "/slots/" + slotId,
 				HttpMethod.DELETE,
 				entity,
 				Object.class
