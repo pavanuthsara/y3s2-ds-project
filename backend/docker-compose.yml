@@ -20,7 +20,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1" ]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -40,7 +40,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -53,9 +53,11 @@ services:
     ports:
       - "8081:8081"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/authdb
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      DB_HOST: auth-postgres
+      DB_PORT: 5432
+      DB_NAME: authdb
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
     depends_on:
       auth-postgres:
@@ -63,7 +65,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1" ]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -83,7 +85,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -111,101 +113,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1" ]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-
-  # DOCTOR SERVICE
-  doctor-postgres:
-    image: postgres:16-alpine
-    container_name: doctor-postgres
-    environment:
-      POSTGRES_DB: doctor_service_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5435:5432"
-    volumes:
-      - doctor_postgres_data:/var/lib/postgresql/data
-    networks:
-      - dsproject-network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  doctor-service:
-    build:
-      context: ./doctor-service
-      dockerfile: Dockerfile
-    container_name: doctor-service
-    ports:
-      - "8083:8083"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://doctor-postgres:5432/doctor_service_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
-    depends_on:
-      doctor-postgres:
-        condition: service_healthy
-      auth-service:
-        condition: service_healthy
-    networks:
-      - dsproject-network
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1" ]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-
-  # PAYMENT SERVICE
-  payment-postgres:
-    image: postgres:16-alpine
-    container_name: payment-postgres
-    environment:
-      POSTGRES_DB: payment_service_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5434:5432"
-    volumes:
-      - payment_postgres_data:/var/lib/postgresql/data
-    networks:
-      - dsproject-network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  payment-service:
-    build:
-      context: ./payment-service
-      dockerfile: Dockerfile
-    container_name: payment-service
-    ports:
-      - "8086:8086"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://payment-postgres:5432/payment_service_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
-      JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
-      STRIPE_SECRET_KEY: sk_test_51234567890
-      STRIPE_WEBHOOK_SECRET: whsec_test_1234567890
-      STRIPE_PUBLISHABLE_KEY: pk_test_1234567890
-    depends_on:
-      payment-postgres:
-        condition: service_healthy
-      auth-service:
-        condition: service_healthy
-    networks:
-      - dsproject-network
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1" ]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -217,5 +125,3 @@ networks:
 volumes:
   auth_postgres_data:
   patient_postgres_data:
-  doctor_postgres_data:
-  payment_postgres_data:
