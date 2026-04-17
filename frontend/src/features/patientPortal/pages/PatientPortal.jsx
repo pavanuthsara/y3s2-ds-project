@@ -6,10 +6,13 @@ import { FileList } from '../components/FileList';
 import AppointmentBookingForm from '../../appointments/components/AppointmentBookingForm';
 import AppointmentHistoryPage from '../../appointments/pages/AppointmentHistoryPage';
 import appointmentService from '../../appointments/services/appointmentService';
-import { authAPI, isLoggedIn } from '../services/api';
+import { authAPI, isLoggedIn, patientAPI } from '../services/api';
 
 export function PatientPortal() {
   const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState('');
   const [refreshReports, setRefreshReports] = useState(0);
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -25,6 +28,32 @@ export function PatientPortal() {
     }
   }, []);
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!session) {
+        setProfile(null);
+        setProfileError('');
+        setProfileLoading(false);
+        return;
+      }
+
+      setProfileLoading(true);
+      setProfileError('');
+
+      try {
+        const data = await patientAPI.getMyProfile();
+        setProfile(data);
+      } catch (err) {
+        setProfile(null);
+        setProfileError(err.message || 'Failed to load patient profile');
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [session]);
+
   const handleLoginSuccess = (result) => {
     const sessionData = {
       username: result.username,
@@ -38,6 +67,9 @@ export function PatientPortal() {
   const handleLogout = () => {
     authAPI.logout();
     setSession(null);
+    setProfile(null);
+    setProfileError('');
+    setProfileLoading(false);
     localStorage.removeItem('patientSession');
     setActiveTab('dashboard');
   };
@@ -58,10 +90,19 @@ export function PatientPortal() {
     return <PatientLogin onLoginSuccess={handleLoginSuccess} onSwitchToRegister={() => {}} />;
   }
 
+  const patientProfileId = profile?.id ?? null;
+  const appointmentPatientId = profile?.username || session.username;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Dashboard Header & Profile */}
-      <PatientDashboard session={session} onLogout={handleLogout} />
+      <PatientDashboard
+        session={session}
+        profile={profile}
+        loading={profileLoading}
+        error={profileError}
+        onLogout={handleLogout}
+      />
 
       {/* Tab Navigation */}
       <div className="max-w-6xl mx-auto px-8 py-6">
@@ -117,28 +158,36 @@ export function PatientPortal() {
         )}
 
         {activeTab === 'files' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1">
-              <FileUpload patientId={session.patientId || 2} onUploadSuccess={handleUploadSuccess} />
+          patientProfileId ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-1">
+                <FileUpload patientId={patientProfileId} onUploadSuccess={handleUploadSuccess} />
+              </div>
+              <div className="lg:col-span-2">
+                <FileList patientId={patientProfileId} refreshTrigger={refreshReports} />
+              </div>
             </div>
-            <div className="lg:col-span-2">
-              <FileList patientId={session.patientId || 2} refreshTrigger={refreshReports} />
+          ) : (
+            <div className="bg-white rounded-lg p-8 text-gray-700">
+              {profileLoading
+                ? 'Loading your patient profile before opening reports...'
+                : 'Your patient profile is not available yet. Create your profile first to upload and manage reports.'}
             </div>
-          </div>
+          )
         )}
 
         {activeTab === 'book-appointment' && (
           <div className="bg-white rounded-lg p-8">
             <AppointmentBookingForm 
               onSubmit={handleAppointmentBooking}
-              patientIdFromSession={session.username}
+              patientIdFromSession={appointmentPatientId}
             />
           </div>
         )}
 
         {activeTab === 'my-appointments' && (
           <div className="bg-white rounded-lg p-8">
-            <AppointmentHistoryPage patientIdFromSession={session.patientId} />
+            <AppointmentHistoryPage patientIdFromSession={appointmentPatientId} />
           </div>
         )}
       </div>

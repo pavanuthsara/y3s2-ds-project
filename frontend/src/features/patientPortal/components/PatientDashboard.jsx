@@ -1,26 +1,4 @@
-import { useState, useEffect } from 'react';
-import { patientAPI } from '../services/api';
-
-export function PatientDashboard({ session, onLogout }) {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await patientAPI.getMyProfile();
-        setProfile(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
+export function PatientDashboard({ session, profile, loading, error, onLogout }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -61,7 +39,7 @@ export function PatientDashboard({ session, onLogout }) {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Username</p>
-                <p className="text-lg font-semibold text-gray-800">{session.username}</p>
+                <p className="text-lg font-semibold text-gray-800">{profile.username || session.username}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Email</p>
