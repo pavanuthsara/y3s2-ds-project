@@ -241,9 +241,9 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:sk_test_51TMvcaA621M92XkWJGzMnqZVd9L8ym0EamEll411jtYQZdKhJS3gAa6HSyA8zVJbFFEsrd4WzIf4RkXGtrFal7M9002YvmoSuX}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:whsec_test_secret}
-      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:pk_test_key}
+      STRIPE_SECRET_KEY: "sk_test_51TMvcaA621M92XkWJGzMnqZVd9L8ym0EamEll411jtYQZdKhJS3gAa6HSyA8zVJbFFEsrd4WzIf4RkXGtrFal7M9002YvmoSuX"
+      STRIPE_WEBHOOK_SECRET: "whsec_test_secret"
+      STRIPE_PUBLISHABLE_KEY: "pk_test_key"
       NOTIFICATION_SERVICE_URL: http://notification-service:8088/api/notifications
     depends_on:
       payment-postgres:
@@ -268,10 +268,10 @@ services:
       - "8088:8088"
     environment:
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
-      MAIL_HOST: ${MAIL_HOST:smtp.gmail.com}
-      MAIL_PORT: ${MAIL_PORT:587}
-      MAIL_USERNAME: ${MAIL_USERNAME:}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:}
+      MAIL_HOST: "smtp.gmail.com"
+      MAIL_PORT: "587"
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
     networks:
       - dsproject-network
     healthcheck:
