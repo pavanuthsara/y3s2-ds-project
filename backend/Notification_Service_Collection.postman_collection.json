@@ -1,0 +1,220 @@
+{
+  "info": {
+    "name": "Healthcare API - Notification Service Tests",
+    "description": "Collection for testing Notification Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Notification Service (Port 8088)",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8088/api/notifications/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8088",
+              "path": ["api", "notifications", "health"]
+            },
+            "description": "Check if Notification Service is running"
+          },
+          "response": []
+        },
+        {
+          "name": "Send Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientEmail\": \"patient@example.com\",\n  \"subject\": \"Test Notification\",\n  \"message\": \"This is a test notification message.\",\n  \"type\": \"GENERAL_NOTIFICATION\",\n  \"channel\": \"EMAIL\",\n  \"patientId\": \"patient-123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8088/api/notifications/send",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8088",
+              "path": ["api", "notifications", "send"]
+            },
+            "description": "Send a custom notification"
+          },
+          "response": []
+        },
+        {
+          "name": "Send Payment Confirmation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8088/api/notifications/payment-confirmation?recipientEmail=patient@example.com&transactionId=550e8400-e29b-41d4-a716-446655440001&patientId=patient-001&amount=5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8088",
+              "path": ["api", "notifications", "payment-confirmation"],
+              "query": [
+                {
+                  "key": "recipientEmail",
+                  "value": "patient@example.com"
+                },
+                {
+                  "key": "transactionId",
+                  "value": "550e8400-e29b-41d4-a716-446655440001"
+                },
+                {
+                  "key": "patientId",
+                  "value": "patient-001"
+                },
+                {
+                  "key": "amount",
+                  "value": "5000"
+                }
+              ]
+            },
+            "description": "Send payment confirmation notification"
+          },
+          "response": []
+        },
+        {
+          "name": "Send Payment Failure",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8088/api/notifications/payment-failure?recipientEmail=patient@example.com&transactionId=550e8400-e29b-41d4-a716-446655440002&reason=Card+declined",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8088",
+              "path": ["api", "notifications", "payment-failure"],
+              "query": [
+                {
+                  "key": "recipientEmail",
+                  "value": "patient@example.com"
+                },
+                {
+                  "key": "transactionId",
+                  "value": "550e8400-e29b-41d4-a716-446655440002"
+                },
+                {
+                  "key": "reason",
+                  "value": "Card declined"
+                }
+              ]
+            },
+            "description": "Send payment failure notification"
+          },
+          "response": []
+        },
+        {
+          "name": "Send Appointment Reminder",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8088/api/notifications/appointment-reminder?recipientEmail=patient@example.com&patientId=patient-001&doctorId=doctor-001",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8088",
+              "path": ["api", "notifications", "appointment-reminder"],
+              "query": [
+                {
+                  "key": "recipientEmail",
+                  "value": "patient@example.com"
+                },
+                {
+                  "key": "patientId",
+                  "value": "patient-001"
+                },
+                {
+                  "key": "doctorId",
+                  "value": "doctor-001"
+                }
+              ]
+            },
+            "description": "Send appointment reminder notification"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notifications by Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8088/api/notifications/by-email?email=patient@example.com",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8088",
+              "path": ["api", "notifications", "by-email"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "patient@example.com"
+                }
+              ]
+            },
+            "description": "Get all notifications for a specific email"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notifications by Patient",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8088/api/notifications/patient/patient-001",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8088",
+              "path": ["api", "notifications", "patient", "patient-001"]
+            },
+            "description": "Get all notifications for a specific patient"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notifications by Transaction",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8088/api/notifications/transaction/550e8400-e29b-41d4-a716-446655440001",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8088",
+              "path": ["api", "notifications", "transaction", "550e8400-e29b-41d4-a716-446655440001"]
+            },
+            "description": "Get all notifications for a specific transaction"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notification by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8088/api/notifications/550e8400-e29b-41d4-a716-446655440011",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8088",
+              "path": ["api", "notifications", "550e8400-e29b-41d4-a716-446655440011"]
+            },
+            "description": "Get a specific notification by ID"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
