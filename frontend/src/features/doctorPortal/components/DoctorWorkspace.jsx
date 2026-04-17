@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import DoctorAvailabilityPage from '../../doctorAvailability/pages/DoctorAvailabilityPage';
+import DoctorAppointmentsPanel from './DoctorAppointmentsPanel';
 import DoctorProfilePanel from './DoctorProfilePanel';
+import DoctorPatientRecordsPanel from './DoctorPatientRecordsPanel';
+import DoctorPrescriptionsPanel from './DoctorPrescriptionsPanel';
 
 export default function DoctorWorkspace({
   activeTab,
@@ -15,6 +19,9 @@ export default function DoctorWorkspace({
   profileError,
   profileMessage,
 }) {
+  const [prescriptionDraft, setPrescriptionDraft] = useState(null);
+  const [selectedPatientId, setSelectedPatientId] = useState('');
+
   if (!session) {
     return <Navigate replace to="/doctor" />;
   }
@@ -50,6 +57,27 @@ export default function DoctorWorkspace({
           >
             Availability
           </button>
+          <button
+            className={`rounded-full px-4 py-2 text-sm font-semibold ${activeTab === 'appointments' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}
+            onClick={() => onTabChange('appointments')}
+            type="button"
+          >
+            Appointments
+          </button>
+          <button
+            className={`rounded-full px-4 py-2 text-sm font-semibold ${activeTab === 'prescriptions' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}
+            onClick={() => onTabChange('prescriptions')}
+            type="button"
+          >
+            Prescriptions
+          </button>
+          <button
+            className={`rounded-full px-4 py-2 text-sm font-semibold ${activeTab === 'records' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}
+            onClick={() => onTabChange('records')}
+            type="button"
+          >
+            Patient Records
+          </button>
         </div>
       </section>
 
@@ -65,8 +93,29 @@ export default function DoctorWorkspace({
             profile={profile}
             session={session}
           />
-        ) : (
+        ) : activeTab === 'availability' ? (
           <DoctorAvailabilityPage />
+        ) : activeTab === 'appointments' ? (
+          <DoctorAppointmentsPanel
+            onSelectPrescriptionDraft={(draft) => {
+              setPrescriptionDraft(draft);
+              if (draft?.patientId) {
+                setSelectedPatientId(draft.patientId);
+              }
+              onTabChange('prescriptions');
+            }}
+            session={session}
+          />
+        ) : activeTab === 'prescriptions' ? (
+          <DoctorPrescriptionsPanel
+            initialDraft={prescriptionDraft}
+            onDraftConsumed={() => setPrescriptionDraft(null)}
+            onPatientChange={setSelectedPatientId}
+            selectedPatientId={selectedPatientId}
+            session={session}
+          />
+        ) : (
+          <DoctorPatientRecordsPanel session={session} />
         )}
       </div>
     </div>

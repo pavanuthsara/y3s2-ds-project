@@ -6,6 +6,7 @@ import com.se73.patient_service.dto.UpdatePatientProfileRequest;
 import com.se73.patient_service.dto.MedicalReportResponse;
 import com.se73.patient_service.model.PatientProfile;
 import com.se73.patient_service.model.MedicalReport;
+import com.se73.patient_service.repository.PatientProfileRepository;
 import com.se73.patient_service.security.JwtTokenProvider;
 import com.se73.patient_service.service.PatientProfileService;
 import com.se73.patient_service.service.FileStorageService;
@@ -25,13 +26,16 @@ import java.util.stream.Collectors;
 public class PatientController {
 
     private final PatientProfileService patientProfileService;
+    private final PatientProfileRepository patientProfileRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final FileStorageService fileStorageService;
     private final MedicalReportRepository medicalReportRepository;
 
-    public PatientController(PatientProfileService patientProfileService, JwtTokenProvider jwtTokenProvider,
-                           FileStorageService fileStorageService, MedicalReportRepository medicalReportRepository) {
+    public PatientController(PatientProfileService patientProfileService, PatientProfileRepository patientProfileRepository,
+                           JwtTokenProvider jwtTokenProvider, FileStorageService fileStorageService,
+                           MedicalReportRepository medicalReportRepository) {
         this.patientProfileService = patientProfileService;
+        this.patientProfileRepository = patientProfileRepository;
         this.jwtTokenProvider = jwtTokenProvider;
         this.fileStorageService = fileStorageService;
         this.medicalReportRepository = medicalReportRepository;
@@ -133,6 +137,34 @@ public class PatientController {
         }
     }
 
+    @GetMapping("/by-username/{username}/reports")
+    public ResponseEntity<?> getReportsByUsernameForDoctor(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String username
+    ) {
+        try {
+            String requester = extractUsername(authHeader);
+            String role = extractRole(authHeader);
+
+            if (!"ROLE_DOCTOR".equalsIgnoreCase(role) && !requester.equalsIgnoreCase(username)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("You are not allowed to access these reports"));
+            }
+
+            PatientProfile patient = patientProfileRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Patient profile not found"));
+
+            List<MedicalReport> reports = medicalReportRepository.findByPatientId(patient.getId());
+            List<MedicalReportResponse> responses = reports.stream()
+                    .map(r -> new MedicalReportResponse(r, "/api/patients/" + patient.getId() + "/reports/" + r.getId() + "/download"))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(responses);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
     @GetMapping("/{id}/reports/{reportId}")
     public ResponseEntity<?> getReport(
             @RequestHeader("Authorization") String authHeader,
@@ -193,6 +225,19 @@ public class PatientController {
         }
 
         return jwtTokenProvider.getUsernameFromToken(token);
+    }
+
+    private String extractRole(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid token format");
+        }
+
+        String token = authHeader.substring(7);
+        if (!jwtTokenProvider.validateToken(token)) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+
+        return jwtTokenProvider.getRoleFromToken(token);
     }
 
     public static class ErrorResponse {

@@ -37,6 +37,9 @@ function App() {
           <Route path="/patient" element={<PatientPortal />} />
           <Route path="/doctor" element={<DoctorPortal initialTab="profile" />} />
           <Route path="/doctor/availability" element={<DoctorPortal initialTab="availability" />} />
+          <Route path="/doctor/appointments" element={<DoctorPortal initialTab="appointments" />} />
+          <Route path="/doctor/prescriptions" element={<DoctorPortal initialTab="prescriptions" />} />
+          <Route path="/doctor/records" element={<DoctorPortal initialTab="records" />} />
         </Routes>
       </main>
     </div>

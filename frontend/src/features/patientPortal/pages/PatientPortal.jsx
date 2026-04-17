@@ -1,36 +1,46 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { PatientLogin } from '../components/PatientLogin';
 import { PatientDashboard } from '../components/PatientDashboard';
 import { FileUpload } from '../components/FileUpload';
 import { FileList } from '../components/FileList';
+import PatientPrescriptionsPanel from '../components/PatientPrescriptionsPanel';
 import AppointmentBookingForm from '../../appointments/components/AppointmentBookingForm';
 import AppointmentHistoryPage from '../../appointments/pages/AppointmentHistoryPage';
 import appointmentService from '../../appointments/services/appointmentService';
-import { authAPI, isLoggedIn } from '../services/api';
+import { authAPI, isLoggedIn, patientAPI } from '../services/api';
 
 export function PatientPortal() {
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState(() => {
+    if (!isLoggedIn()) {
+      return null;
+    }
+
+    const savedSession = localStorage.getItem('patientSession');
+    if (!savedSession) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(savedSession);
+    } catch {
+      return null;
+    }
+  });
   const [refreshReports, setRefreshReports] = useState(0);
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Check if already logged in on mount
-  useEffect(() => {
-    if (isLoggedIn()) {
-      // If we have a token, we can assume session is active
-      // In a real app, you'd verify the token with the backend
-      const savedSession = localStorage.getItem('patientSession');
-      if (savedSession) {
-        setSession(JSON.parse(savedSession));
-      }
-    }
-  }, []);
-
-  const handleLoginSuccess = (result) => {
+  const handleLoginSuccess = async (result) => {
     const sessionData = {
       username: result.username,
       email: result.email,
       role: result.role,
     };
+    try {
+      const profile = await patientAPI.getMyProfile();
+      sessionData.patientId = profile.id;
+    } catch {
+      sessionData.patientId = result.username;
+    }
     setSession(sessionData);
     localStorage.setItem('patientSession', JSON.stringify(sessionData));
   };
@@ -106,6 +116,16 @@ export function PatientPortal() {
           >
             🏥 My Appointments
           </button>
+          <button
+            onClick={() => setActiveTab('prescriptions')}
+            className={`px-4 py-3 font-semibold transition-colors ${
+              activeTab === 'prescriptions'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            💊 Prescriptions
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -140,6 +160,10 @@ export function PatientPortal() {
           <div className="bg-white rounded-lg p-8">
             <AppointmentHistoryPage patientIdFromSession={session.patientId} />
           </div>
+        )}
+
+        {activeTab === 'prescriptions' && (
+          <PatientPrescriptionsPanel patientId={session.username} />
         )}
       </div>
     </div>

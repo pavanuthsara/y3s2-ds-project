@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import DoctorAuthPage from '../components/DoctorAuthPage';
 import DoctorWorkspace from '../components/DoctorWorkspace';
+import { EMPTY_DOCTOR_PROFILE } from '../components/doctorProfileDefaults';
 import {
   doctorAuthAPI,
   doctorProfileAPI,
   getStoredDoctorSession,
   isDoctorLoggedIn,
 } from '../services/api';
-import { EMPTY_DOCTOR_PROFILE } from '../components/DoctorProfilePanel';
 
 function DoctorPortal({ initialTab = 'profile' }) {
   const [session, setSession] = useState(getStoredDoctorSession());
@@ -93,7 +93,16 @@ function DoctorPortal({ initialTab = 'profile' }) {
         username: form.username,
         password: form.password,
       });
+      const createdProfile = await doctorProfileAPI.upsertOwnProfile({
+        ...EMPTY_DOCTOR_PROFILE,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        specialty: form.specialty,
+      });
       handleAuthSuccess(nextSession);
+      setProfile(createdProfile);
+      setProfileForm(createdProfile);
+      setProfileMessage('Doctor profile created from registration details.');
     } catch (error) {
       setAuthError(error.message);
     } finally {

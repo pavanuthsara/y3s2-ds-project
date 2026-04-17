@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -52,6 +53,21 @@ public class PrescriptionController {
 		}
 	}
 
+	@GetMapping("/patient/{patientId}")
+	public ResponseEntity<?> getPrescriptionsByPatientId(
+		@RequestHeader(value = "X-User-Id", required = false) String userId,
+		@RequestHeader(value = "X-User-Role", required = false) String userRole,
+		@PathVariable String patientId
+	) {
+		try {
+			validatePatientOrDoctorContext(userId, userRole, patientId);
+			List<PrescriptionResponse> response = prescriptionService.getPrescriptionsByPatientId(patientId);
+			return ResponseEntity.ok(response);
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(e.getMessage()));
+		}
+	}
+
 	private String validateDoctorContext(String userId, String userRole) {
 		if (!StringUtils.hasText(userId)) {
 			throw new IllegalArgumentException("Missing authenticated user context");
@@ -62,6 +78,20 @@ public class PrescriptionController {
 		}
 
 		return userId;
+	}
+
+	private void validatePatientOrDoctorContext(String userId, String userRole, String patientId) {
+		if (!StringUtils.hasText(userId)) {
+			throw new IllegalArgumentException("Missing authenticated user context");
+		}
+
+		if (!"ROLE_DOCTOR".equalsIgnoreCase(userRole) && !"ROLE_PATIENT".equalsIgnoreCase(userRole)) {
+			throw new IllegalArgumentException("Only doctors or patients can access prescriptions");
+		}
+
+		if ("ROLE_PATIENT".equalsIgnoreCase(userRole) && !userId.equalsIgnoreCase(patientId)) {
+			throw new IllegalArgumentException("Patients can only view their own prescriptions");
+		}
 	}
 
 	private record ErrorResponse(String message) {

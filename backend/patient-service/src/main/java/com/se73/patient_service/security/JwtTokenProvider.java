@@ -25,6 +25,23 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
+    public String getRoleFromToken(String token) {
+        SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        String role = claims.get("role", String.class);
+        if (role != null) {
+            return role;
+        }
+
+        Object authorities = claims.get("authorities");
+        return authorities == null ? null : authorities.toString();
+    }
+
     public boolean validateToken(String token) {
         try {
             SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());

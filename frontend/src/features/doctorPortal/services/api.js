@@ -117,6 +117,38 @@ function persistDoctorAuth(data) {
   return session;
 }
 
+function normalizeAppointment(appointment = {}) {
+  return {
+    appointmentDateTime: appointment.appointmentDateTime || '',
+    appointmentId: appointment.appointmentId || '',
+    appointmentMode: appointment.appointmentMode || '',
+    createdAt: appointment.createdAt || '',
+    doctorUsername: appointment.doctorUsername || '',
+    hospital: appointment.hospital || '',
+    notes: appointment.notes || '',
+    patientId: appointment.patientId || '',
+    paymentStatus: appointment.paymentStatus || '',
+    price: appointment.price ?? '',
+    slotId: appointment.slotId || '',
+    status: appointment.status || '',
+    updatedAt: appointment.updatedAt || '',
+  };
+}
+
+function normalizePrescription(prescription = {}) {
+  return {
+    appointmentId: prescription.appointmentId || '',
+    doctorUsername: prescription.doctorUsername || '',
+    dosage: prescription.dosage || '',
+    id: prescription.id || '',
+    instructions: prescription.instructions || '',
+    issuedAt: prescription.issuedAt || '',
+    medication: prescription.medication || '',
+    notes: prescription.notes || '',
+    patientId: prescription.patientId || '',
+  };
+}
+
 export const doctorAuthAPI = {
   async register(form) {
     const data = await request('/api/auth/register', {
@@ -176,6 +208,68 @@ export const doctorProfileAPI = {
     });
 
     return normalizeDoctorProfile(data);
+  },
+};
+
+export const doctorAppointmentAPI = {
+  async getAppointments(doctorUsername) {
+    const data = await request(`/api/appointments/doctor/${encodeURIComponent(doctorUsername)}`, {
+      method: 'GET',
+      headers: getHeaders(true),
+    });
+
+    return Array.isArray(data) ? data.map(normalizeAppointment) : [];
+  },
+
+  async updateStatus(appointmentId, status) {
+    const data = await request(`/api/appointments/${appointmentId}/status`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: JSON.stringify({ status }),
+    });
+
+    return normalizeAppointment(data);
+  },
+};
+
+export const doctorPrescriptionAPI = {
+  async createPrescription(payload) {
+    const data = await request('/api/prescriptions', {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(payload),
+    });
+
+    return normalizePrescription(data);
+  },
+
+  async getPrescriptionsByPatientId(patientId) {
+    const data = await request(`/api/prescriptions/patient/${encodeURIComponent(patientId)}`, {
+      method: 'GET',
+      headers: getHeaders(true),
+    });
+
+    return Array.isArray(data) ? data.map(normalizePrescription) : [];
+  },
+};
+
+export const doctorRecordsAPI = {
+  async getPatientReportsByUsername(patientUsername) {
+    const data = await request(`/api/patients/by-username/${encodeURIComponent(patientUsername)}/reports`, {
+      method: 'GET',
+      headers: getHeaders(true),
+    });
+
+    return Array.isArray(data) ? data : [];
+  },
+
+  async getPatientAppointments(patientUsername) {
+    const data = await request(`/api/appointments/patient/${encodeURIComponent(patientUsername)}`, {
+      method: 'GET',
+      headers: getHeaders(true),
+    });
+
+    return Array.isArray(data) ? data.map(normalizeAppointment) : [];
   },
 };
 

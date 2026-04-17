@@ -191,4 +191,20 @@ export const reportsAPI = {
   },
 };
 
+export const prescriptionsAPI = {
+  getPrescriptions: async (patientId) => {
+    const response = await fetch(`${API_BASE_URL}/prescriptions/patient/${encodeURIComponent(patientId)}`, {
+      method: 'GET',
+      headers: getHeaders(true),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to fetch prescriptions');
+    }
+
+    return response.json();
+  },
+};
+
 export const isLoggedIn = () => !!getToken();

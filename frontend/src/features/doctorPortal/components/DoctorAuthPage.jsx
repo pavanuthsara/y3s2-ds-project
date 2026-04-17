@@ -11,6 +11,7 @@ const EMPTY_REGISTER_FORM = {
   password: '',
   firstName: '',
   lastName: '',
+  specialty: '',
 };
 
 function DoctorLoginForm({ form, onChange, onSubmit, isBusy, error }) {
@@ -70,6 +71,10 @@ function DoctorRegisterForm({ form, onChange, onSubmit, isBusy, error }) {
           <input className="rounded-2xl border border-slate-300 bg-white px-4 py-3" name="lastName" onChange={onChange} required value={form.lastName} />
         </label>
       </div>
+      <label className="grid gap-2 font-semibold text-slate-800">
+        Specialty
+        <input className="rounded-2xl border border-slate-300 bg-white px-4 py-3" name="specialty" onChange={onChange} required value={form.specialty} />
+      </label>
       <label className="grid gap-2 font-semibold text-slate-800">
         Password
         <input className="rounded-2xl border border-slate-300 bg-white px-4 py-3" name="password" onChange={onChange} required type="password" value={form.password} />
