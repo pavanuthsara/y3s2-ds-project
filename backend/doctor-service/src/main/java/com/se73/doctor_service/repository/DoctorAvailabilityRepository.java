@@ -15,5 +15,7 @@ public interface DoctorAvailabilityRepository extends JpaRepository<DoctorAvaila
 
 	Optional<DoctorAvailabilitySlot> findByIdAndDoctorUsername(UUID id, String doctorUsername);
 
+	List<DoctorAvailabilitySlot> findByActiveTrue();
+
 	void deleteByDoctorUsername(String doctorUsername);
 }

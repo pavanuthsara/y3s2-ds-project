@@ -1,15 +1,18 @@
-package com.se73.appointment_service;
+package com.SE73.appointment_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 
+/**
+ * Main entry point for the Appointment Service microservice.
+ * Manages healthcare appointment bookings, status updates, and retrieval.
+ */
 @SpringBootApplication
-@EnableFeignClients
 public class AppointmentServiceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(AppointmentServiceApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(AppointmentServiceApplication.class, args);
+    }
 
 }
+

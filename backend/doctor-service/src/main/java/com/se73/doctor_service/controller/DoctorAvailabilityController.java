@@ -2,6 +2,7 @@ package com.se73.doctor_service.controller;
 
 import com.se73.doctor_service.dto.AvailabilitySlotRequest;
 import com.se73.doctor_service.dto.AvailabilitySlotResponse;
+import com.se73.doctor_service.dto.DoctorAvailabilityResponse;
 import com.se73.doctor_service.dto.SetDoctorAvailabilityRequest;
 import com.se73.doctor_service.model.DoctorAvailabilitySlot;
 import com.se73.doctor_service.service.DoctorAvailabilityService;
@@ -30,6 +31,23 @@ public class DoctorAvailabilityController {
 
 	public DoctorAvailabilityController(DoctorAvailabilityService availabilityService) {
 		this.availabilityService = availabilityService;
+	}
+
+	@GetMapping("/all")
+	public ResponseEntity<?> getAllDoctorAvailability(
+			@RequestHeader(value = "X-User-Id", required = false) String userId,
+			@RequestHeader(value = "X-User-Role", required = false) String userRole
+	) {
+		try {
+			validatePatientOrDoctorContext(userId, userRole);
+			List<DoctorAvailabilityResponse> response = availabilityService.getAllActiveSlots()
+					.stream()
+					.map(this::toDoctorAvailabilityResponse)
+					.toList();
+			return ResponseEntity.ok(response);
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(e.getMessage()));
+		}
 	}
 
 	@GetMapping
@@ -109,6 +127,16 @@ public class DoctorAvailabilityController {
 		return userId;
 	}
 
+	private void validatePatientOrDoctorContext(String userId, String userRole) {
+		if (!StringUtils.hasText(userId)) {
+			throw new IllegalArgumentException("Missing authenticated user context");
+		}
+
+		if (!"ROLE_DOCTOR".equalsIgnoreCase(userRole) && !"ROLE_PATIENT".equalsIgnoreCase(userRole)) {
+			throw new IllegalArgumentException("Only doctors or patients can access availability information");
+		}
+	}
+
 	private AvailabilitySlotResponse toResponse(DoctorAvailabilitySlot slot) {
 		return new AvailabilitySlotResponse(
 			slot.getId(),
@@ -116,6 +144,16 @@ public class DoctorAvailabilityController {
 			slot.getStartTime(),
 			slot.getEndTime(),
 			slot.isActive()
+		);
+	}
+
+	private DoctorAvailabilityResponse toDoctorAvailabilityResponse(DoctorAvailabilitySlot slot) {
+		return new DoctorAvailabilityResponse(
+			slot.getId(),
+			slot.getDoctorUsername(),
+			slot.getDayOfWeek(),
+			slot.getStartTime(),
+			slot.getEndTime()
 		);
 	}
 

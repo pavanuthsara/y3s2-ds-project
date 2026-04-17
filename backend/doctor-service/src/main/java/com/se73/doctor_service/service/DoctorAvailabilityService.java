@@ -25,6 +25,10 @@ public class DoctorAvailabilityService {
 		return repository.findByDoctorUsernameOrderByDayOfWeekAscStartTimeAsc(doctorUsername);
 	}
 
+	public List<DoctorAvailabilitySlot> getAllActiveSlots() {
+		return repository.findByActiveTrue();
+	}
+
 	public List<DoctorAvailabilitySlot> replaceAvailability(String doctorUsername, List<AvailabilitySlotRequest> requests) {
 		validateDoctorUsername(doctorUsername);
 		validateSlotRequests(requests);

@@ -1,40 +1,71 @@
-package com.se73.appointment_service.service;
+package com.SE73.appointment_service.service;
 
-import com.se73.appointment_service.client.DoctorClient;
-import com.se73.appointment_service.client.PatientClient;
-import com.se73.appointment_service.dto.*;
-import com.se73.appointment_service.enums.PaymentStatus;
-import com.se73.appointment_service.model.Appointment;
-import com.se73.appointment_service.repository.AppointmentRepository;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.SE73.appointment_service.dto.AppointmentRequest;
+import com.SE73.appointment_service.dto.AppointmentResponse;
+import com.SE73.appointment_service.dto.AppointmentStatusUpdateRequest;
 
-@Service
-@RequiredArgsConstructor
-public class AppointmentService {
-    private final AppointmentRepository repository;
-    private final PatientClient patientClient;
-    private final DoctorClient doctorClient;
+import java.util.List;
+import java.util.UUID;
 
-    @Transactional
-    public Appointment createAppointment(Long patientId, Long doctorId, Long slotId) {
-        // 1. Verify Patient exists (Mocked for now)
-        PatientDTO patient = patientClient.getPatient(patientId);
+/**
+ * Service interface defining the business operations for appointment management.
+ */
+public interface AppointmentService {
 
-        // 2. Get Doctor details and Price (Mocked for now)
-        DoctorDTO doctor = doctorClient.getDoctor(doctorId);
-        TimeSlotDTO slot = doctorClient.getSlot(doctorId, slotId);
+    /**
+     * Creates a new appointment after validating that the slot is not already booked.
+     *
+     * @param request the appointment booking request
+     * @return the created appointment as a response DTO
+     */
+    AppointmentResponse createAppointment(AppointmentRequest request);
 
-        // 3. Create Appointment Record
-        Appointment appointment = new Appointment();
-        appointment.setPatientId(patient.id());
-        appointment.setDoctorId(doctor.id());
-        appointment.setSlotId(slot.id());
-        appointment.setAppointmentTime(slot.startTime());
-        appointment.setPrice(doctor.consultationFee());
-        appointment.setPaymentStatus(PaymentStatus.PENDING);
+    /**
+     * Retrieves a single appointment by its unique identifier.
+     *
+     * @param id the appointment UUID
+     * @return the appointment response DTO
+     */
+    AppointmentResponse getAppointmentById(UUID id);
 
-        return repository.save(appointment);
-    }
+    /**
+     * Retrieves all appointments for a specific patient.
+     *
+     * @param patientId the patient identifier
+     * @return list of appointment response DTOs
+     */
+    List<AppointmentResponse> getAppointmentsByPatientId(String patientId);
+
+    /**
+     * Retrieves all appointments assigned to a specific doctor.
+     *
+     * @param doctorUsername the doctor's username
+     * @return list of appointment response DTOs
+     */
+    List<AppointmentResponse> getAppointmentsByDoctorUsername(String doctorUsername);
+
+    /**
+     * Updates the status of an existing appointment.
+     *
+     * @param id      the appointment UUID
+     * @param request the status update request
+     * @return the updated appointment response DTO
+     */
+    AppointmentResponse updateAppointmentStatus(UUID id, AppointmentStatusUpdateRequest request);
+
+    /**
+     * Cancels an appointment by setting its status to CANCELLED.
+     *
+     * @param id the appointment UUID
+     * @return the cancelled appointment response DTO
+     */
+    AppointmentResponse cancelAppointment(UUID id);
+
+    /**
+     * Retrieves all appointments in the system.
+     *
+     * @return list of all appointment response DTOs
+     */
+    List<AppointmentResponse> getAllAppointments();
 }
+
