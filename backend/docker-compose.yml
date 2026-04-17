@@ -13,6 +13,7 @@ services:
       DOCTOR_SERVICE_BASE_URL: http://doctor-service:8083/api/doctors
       SYMPTOM_CHECKER_SERVICE_BASE_URL: http://ai-symptom-checker:8087/api/symptoms
       APPOINTMENT_SERVICE_BASE_URL: http://appointment-service:8085/api/appointments
+      TELEMEDICINE_SERVICE_BASE_URL: http://telemedicine-service:8084/api/telemedicine
       PAYMENT_SERVICE_BASE_URL: http://payment-service:8086/api/payments
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
     depends_on:
@@ -23,6 +24,8 @@ services:
       doctor-service:
         condition: service_healthy
       ai-symptom-checker:
+        condition: service_healthy
+      telemedicine-service:
         condition: service_healthy
     networks:
       - dsproject-network
@@ -212,6 +215,30 @@ services:
       - dsproject-network
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # TELEMEDICINE SERVICE
+  telemedicine-service:
+    build:
+      context: ./telemedicine-service
+      dockerfile: Dockerfile
+    container_name: telemedicine-service
+    ports:
+      - "8084:8084"
+    environment:
+      APPOINTMENT_SERVICE_BASE_URL: http://appointment-service:8085/api/appointments
+      AGORA_APP_ID: ${AGORA_APP_ID:-demo-app-id}
+      AGORA_APP_CERTIFICATE: ${AGORA_APP_CERTIFICATE:-demo-app-certificate}
+      AGORA_TOKEN_TTL_SECONDS: ${AGORA_TOKEN_TTL_SECONDS:-3600}
+    depends_on:
+      appointment-service:
+        condition: service_healthy
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 5
