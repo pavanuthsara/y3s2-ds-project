@@ -42,6 +42,23 @@ export const PaymentForm = ({
   const [paymentError, setPaymentError] = useState('');
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+  };
+
+  useEffect(() => {
+    if (!toast.show) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [toast.show]);
 
   // Handle payment initiation
   const handleInitiatePayment = async (e) => {
@@ -50,7 +67,10 @@ export const PaymentForm = ({
     const result = await initiatePayment();
     if (result) {
       setStep('payment');
+      showToast('Payment session initialized successfully.', 'success');
       onPaymentInitiated?.(result);
+    } else {
+      showToast('Failed to initialize payment session.', 'error');
     }
   };
 
@@ -60,6 +80,7 @@ export const PaymentForm = ({
 
     if (!stripe || !clientSecret) {
       setPaymentError('Payment form not ready. Please try again.');
+      showToast('Payment form is not ready yet.', 'error');
       return;
     }
 
@@ -79,9 +100,11 @@ export const PaymentForm = ({
       if (result.error) {
         // Handle errors
         setPaymentError(result.error.message || 'Payment confirmation failed');
+        showToast(result.error.message || 'Payment confirmation failed.', 'error');
       } else if (result.paymentIntent) {
         // Success
         if (result.paymentIntent.status === 'succeeded' || result.paymentIntent.status === 'requires_action') {
+          showToast('Payment completed successfully.', 'success');
           setStep('confirmation');
           onSuccess?.({
             transactionId,
@@ -92,6 +115,7 @@ export const PaymentForm = ({
     } catch (err) {
       console.error('Payment confirmation error:', err);
       setPaymentError(err.message || 'Failed to confirm payment');
+      showToast(err.message || 'Failed to confirm payment.', 'error');
     } finally {
       setPaymentLoading(false);
     }
@@ -107,21 +131,37 @@ export const PaymentForm = ({
 
   // Show loading while Stripe is initializing
   if (stripeLoading) {
-    return <PaymentLoader message="Initializing payment form..." />;
+    return (
+      <div className="space-y-3">
+        {toast.show && (
+          <div className={`p-3 rounded-lg text-sm font-semibold ${toast.type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+            {toast.message}
+          </div>
+        )}
+        <PaymentLoader message="Initializing payment form..." />
+      </div>
+    );
   }
 
   // Show error if Stripe failed
   if (stripeError) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-        <h3 className="text-red-800 font-semibold mb-2">Payment Service Error</h3>
-        <p className="text-red-700 text-sm">{stripeError}</p>
-        <button
-          onClick={onCancel}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-        >
-          Cancel
-        </button>
+      <div className="space-y-3">
+        {toast.show && (
+          <div className={`p-3 rounded-lg text-sm font-semibold ${toast.type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+            {toast.message}
+          </div>
+        )}
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <h3 className="text-red-800 font-semibold mb-2">Payment Service Error</h3>
+          <p className="text-red-700 text-sm">{stripeError}</p>
+          <button
+            onClick={onCancel}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     );
   }
@@ -143,6 +183,12 @@ export const PaymentForm = ({
   if (step === 'payment' && clientSecret) {
     return (
       <form onSubmit={handleConfirmPayment} className="space-y-4">
+        {toast.show && (
+          <div className={`p-3 rounded-lg text-sm font-semibold ${toast.type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+            {toast.message}
+          </div>
+        )}
+
         {/* Stripe Payment Element */}
         <div className="mb-6">
           <label className="block text-gray-700 font-semibold mb-3">Payment Method</label>
@@ -209,6 +255,12 @@ export const PaymentForm = ({
   // Initiation step - Confirm amount and initiate
   return (
     <form onSubmit={handleInitiatePayment} className="space-y-4">
+      {toast.show && (
+        <div className={`p-3 rounded-lg text-sm font-semibold ${toast.type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+          {toast.message}
+        </div>
+      )}
+
       {/* Amount Display */}
       <div className="p-4 bg-gray-50 rounded-lg">
         <div className="flex justify-between items-center mb-3">
