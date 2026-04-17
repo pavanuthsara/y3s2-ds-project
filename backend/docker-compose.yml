@@ -11,6 +11,7 @@ services:
       AUTH_SERVICE_BASE_URL: http://auth-service:8081/api/auth
       PATIENT_SERVICE_BASE_URL: http://patient-service:8082/api/patients
       SYMPTOM_CHECKER_SERVICE_BASE_URL: http://ai-symptom-checker:8087/api/symptoms
+      APPOINTMENT_SERVICE_BASE_URL: http://appointment-service:8085/api/appointments
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
     depends_on:
       auth-service:
@@ -210,6 +211,48 @@ services:
       timeout: 5s
       retries: 5
 
+  # APPOINTMENT SERVICE
+  appointment-postgres:
+    image: postgres:16-alpine
+    container_name: appointment-postgres
+    environment:
+      POSTGRES_DB: appointment_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    volumes:
+      - appointment_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  appointment-service:
+    build:
+      context: ./appointment-service
+      dockerfile: Dockerfile
+    container_name: appointment-service
+    ports:
+      - "8085:8085"
+    environment:
+      DB_URL: jdbc:postgresql://appointment-postgres:5432/appointment_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      appointment-postgres:
+        condition: service_healthy
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
 networks:
   dsproject-network:
     driver: bridge
@@ -219,3 +262,5 @@ volumes:
   patient_postgres_data:
   doctor_postgres_data:
   payment_postgres_data:
+  appointment_postgres_data:
+
