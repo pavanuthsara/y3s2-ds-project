@@ -37,11 +37,17 @@ const getAuthHeaders = () => {
  */
 export const initiatePayment = async (appointmentId, patientId, amount, currency = 'LKR') => {
   try {
+    const patientEmail =
+      localStorage.getItem('email') ||
+      JSON.parse(localStorage.getItem('patientSession') || '{}').email ||
+      null;
+
     const response = await axios.post(
       `${PAYMENT_API}/initiate`,
       {
         appointmentId,
         patientId,
+        patientEmail,
         amount,
         currency,
       },

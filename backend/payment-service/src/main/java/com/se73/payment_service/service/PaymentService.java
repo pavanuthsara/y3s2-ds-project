@@ -67,6 +67,11 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId) {
+        return confirmPayment(transactionIdStr, paymentMethodId, null);
+    }
+
+    @Transactional
+    public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId, String bearerToken) {
         try {
             log.info("Confirming payment for transaction: {} with method: {}", transactionIdStr, paymentMethodId);
 
@@ -89,8 +94,8 @@ public class PaymentService {
                 transaction.setPaidAt(LocalDateTime.now());
                 transactionRepository.save(transaction);
                 
-                // Send payment success notification asynchronously
-                sendPaymentSuccessNotificationAsync(transaction);
+                // Fire-and-forget notification to notification-service
+                notificationClient.sendPaymentConfirmed(transaction, bearerToken);
                 
                 // Return response
                 PaymentResponse response = new PaymentResponse();
@@ -117,8 +122,8 @@ public class PaymentService {
                 
                 transactionRepository.save(transaction);
                 
-                // Send payment success notification asynchronously
-                sendPaymentSuccessNotificationAsync(transaction);
+                // Fire-and-forget notification to notification-service
+                notificationClient.sendPaymentConfirmed(transaction, bearerToken);
             } else if ("requires_payment_method".equals(paymentIntent.getStatus())) {
                 throw new PaymentException("Payment method declined or invalid");
             } else if ("requires_action".equals(paymentIntent.getStatus())) {
@@ -130,8 +135,7 @@ public class PaymentService {
                 
                 transactionRepository.save(transaction);
                 
-                // Send payment failure notification asynchronously
-                sendPaymentFailureNotificationAsync(transaction);
+                // Payment failed — skip confirmation notification.
             }
 
             if (!"succeeded".equals(paymentIntent.getStatus())) {
@@ -206,6 +210,7 @@ public class PaymentService {
         PaymentTransaction transaction = new PaymentTransaction();
         transaction.setAppointmentId(request.getAppointmentId());
         transaction.setPatientId(request.getPatientId());
+        transaction.setPatientEmail(request.getPatientEmail());
         transaction.setAmount(request.getAmount());
         transaction.setCurrency(request.getCurrency());
         transaction.setPaymentGateway(PaymentTransaction.PaymentGateway.STRIPE);
@@ -257,36 +262,4 @@ public class PaymentService {
         );
     }
 
-    private void sendPaymentSuccessNotificationAsync(PaymentTransaction transaction) {
-        // Send notification asynchronously in a new thread to avoid blocking the response
-        new Thread(() -> {
-            try {
-                Thread.sleep(500); // Small delay to ensure transaction is committed
-                notificationClient.sendPaymentSuccessNotification(
-                        transaction.getPatientEmail() != null ? transaction.getPatientEmail() : "patient@example.com",
-                        transaction.getId().toString(),
-                        transaction.getPatientId(),
-                        transaction.getAmount().doubleValue()
-                );
-            } catch (Exception e) {
-                log.error("Error sending payment success notification for transaction: {}", transaction.getId(), e);
-            }
-        }).start();
-    }
-
-    private void sendPaymentFailureNotificationAsync(PaymentTransaction transaction) {
-        // Send notification asynchronously in a new thread to avoid blocking the response
-        new Thread(() -> {
-            try {
-                Thread.sleep(500); // Small delay to ensure transaction is committed
-                notificationClient.sendPaymentFailureNotification(
-                        transaction.getPatientEmail() != null ? transaction.getPatientEmail() : "patient@example.com",
-                        transaction.getId().toString(),
-                        transaction.getFailureReason() != null ? transaction.getFailureReason() : "Unknown error"
-                );
-            } catch (Exception e) {
-                log.error("Error sending payment failure notification for transaction: {}", transaction.getId(), e);
-            }
-        }).start();
-    }
 }

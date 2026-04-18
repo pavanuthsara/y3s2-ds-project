@@ -1,4 +1,4 @@
-package com.se73.payment_service;
+package com.se73.notification_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,9 +6,9 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @EnableAsync
-public class PaymentServiceApplication {
+public class NotificationServiceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(PaymentServiceApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(NotificationServiceApplication.class, args);
+    }
 }

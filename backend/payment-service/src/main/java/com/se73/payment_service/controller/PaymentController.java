@@ -55,12 +55,14 @@ public class PaymentController {
      */
     @PostMapping("/confirm")
     public ResponseEntity<?> confirmPayment(
-            @Valid @RequestBody PaymentConfirmRequest request) {
+            @Valid @RequestBody PaymentConfirmRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
 
         try {
             log.info("Payment confirmation request received for transaction: {}", request.getTransactionId());
 
-            PaymentResponse response = paymentService.confirmPayment(request.getTransactionId(), request.getPaymentMethodId());
+            PaymentResponse response = paymentService.confirmPayment(
+                    request.getTransactionId(), request.getPaymentMethodId(), authorization);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {

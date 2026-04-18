@@ -192,7 +192,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -214,14 +214,11 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health || exit 1" ]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
 
-<<<<<<< HEAD
-  # PAYMENT SERVICE
-=======
   # TELEMEDICINE SERVICE
   telemedicine-service:
     build:
@@ -241,7 +238,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health || exit 1" ]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -261,13 +258,12 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8087/api/symptoms/health || exit 1" ]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8087/api/symptoms/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
 
   # PAYMENT SERVICE DATABASE
->>>>>>> main
   payment-postgres:
     image: postgres:16-alpine
     container_name: payment-postgres
@@ -282,19 +278,12 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-<<<<<<< HEAD
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-=======
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
->>>>>>> main
       interval: 10s
       timeout: 5s
       retries: 5
 
-<<<<<<< HEAD
-=======
   # PAYMENT SERVICE
->>>>>>> main
   payment-service:
     build:
       context: ./payment-service
@@ -308,22 +297,39 @@ services:
       DB_NAME: payment_service_db
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-<<<<<<< HEAD
-      APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
-      STRIPE_SECRET_KEY: "sk_test_51TMvcaA621M92XkWJGzMnqZVd9L8ym0EamEll411jtYQZdKhJS3gAa6HSyA8zVJbFFEsrd4WzIf4RkXGtrFal7M9002YvmoSuX"
-      STRIPE_WEBHOOK_SECRET: "whsec_test_secret"
-      STRIPE_PUBLISHABLE_KEY: "pk_test_key"
+      JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+      STRIPE_SECRET_KEY: sk_test_51TMvcaA621M92XkWJGzMnqZVd9L8ym0EamEll411jtYQZdKhJS3gAa6HSyA8zVJbFFEsrd4WzIf4RkXGtrFal7M9002YvmoSuX
+      STRIPE_WEBHOOK_SECRET: whsec_test_secret
+      STRIPE_PUBLISHABLE_KEY: pk_test_51TMvcaA621M92XkWlrbInOEX3DYU57VAomEhoDr2ua3WZ5FziPiqDHT5lVLkuM8Js0sZeVo8v0vtjxn6fYgrkMvq00wnPkO2EX
       NOTIFICATION_SERVICE_URL: http://notification-service:8088/api/notifications
     depends_on:
       payment-postgres:
-        condition: service_healthy
-      auth-service:
         condition: service_healthy
     networks:
       - dsproject-network
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1"]
       interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # NOTIFICATION SERVICE DATABASE
+  notification-postgres:
+    image: postgres:16-alpine
+    container_name: notification-postgres
+    environment:
+      POSTGRES_DB: notification_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5438:5432"
+    volumes:
+      - notification_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
       timeout: 5s
       retries: 5
 
@@ -336,27 +342,25 @@ services:
     ports:
       - "8088:8088"
     environment:
-      APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
-      MAIL_HOST: "smtp.gmail.com"
-      MAIL_PORT: "587"
-      MAIL_USERNAME: ""
-      MAIL_PASSWORD: ""
-    networks:
-      - dsproject-network
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8088/actuator/health || exit 1"]
-=======
-      STRIPE_SECRET_KEY: sk_test_51TMvcaA621M92XkWJGzMnqZVd9L8ym0EamEll411jtYQZdKhJS3gAa6HSyA8zVJbFFEsrd4WzIf4RkXGtrFal7M9002YvmoSuX
-      STRIPE_PUBLISHABLE_KEY: pk_test_51TMvcaA621M92XkWlrbInOEX3DYU57VAomEhoDr2ua3WZ5FziPiqDHT5lVLkuM8Js0sZeVo8v0vtjxn6fYgrkMvq00wnPkO2EX
+      DB_HOST: notification-postgres
+      DB_PORT: 5432
+      DB_NAME: notification_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
       JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@ds-project.local}
+      PATIENT_SERVICE_URL: http://patient-service:8082/api/patients
     depends_on:
-      payment-postgres:
+      notification-postgres:
         condition: service_healthy
     networks:
       - dsproject-network
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1" ]
->>>>>>> main
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8088/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -371,4 +375,4 @@ volumes:
   doctor_postgres_data:
   payment_postgres_data:
   appointment_postgres_data:
-
+  notification_postgres_data:
