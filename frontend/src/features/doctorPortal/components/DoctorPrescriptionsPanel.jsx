@@ -45,7 +45,7 @@ const normalizeAppointments = (appointments) => {
     });
 };
 
-export default function DoctorPrescriptionsPanel({ session }) {
+export default function DoctorPrescriptionsPanel({ profile, session }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [createBusy, setCreateBusy] = useState(false);
   const [appointmentsBusy, setAppointmentsBusy] = useState(false);
@@ -68,6 +68,15 @@ export default function DoctorPrescriptionsPanel({ session }) {
     [appointments, selectedPatientId]
   );
 
+  const doctorIdentifier = useMemo(() => {
+    const profileDoctorUsername = (profile?.doctorUsername || '').trim();
+    if (profileDoctorUsername) {
+      return profileDoctorUsername;
+    }
+
+    return (session?.username || '').trim();
+  }, [profile?.doctorUsername, session?.username]);
+
   const syncLockedIdentifiers = (patientId, appointmentId) => {
     setForm((current) => ({
       ...current,
@@ -77,7 +86,7 @@ export default function DoctorPrescriptionsPanel({ session }) {
   };
 
   const loadDoctorAppointments = async () => {
-    if (!session?.username) {
+    if (!doctorIdentifier) {
       return;
     }
 
@@ -85,7 +94,7 @@ export default function DoctorPrescriptionsPanel({ session }) {
     setAppointmentsError('');
 
     try {
-      const data = await doctorAppointmentsAPI.getDoctorAppointments(session.username);
+      const data = await doctorAppointmentsAPI.getDoctorAppointments(doctorIdentifier);
       const nextAppointments = normalizeAppointments(data);
       setAppointments(nextAppointments);
       if (nextAppointments.length === 0) {
@@ -106,7 +115,7 @@ export default function DoctorPrescriptionsPanel({ session }) {
 
   useEffect(() => {
     loadDoctorAppointments();
-  }, [session?.username]);
+  }, [doctorIdentifier]);
 
   useEffect(() => {
     if (appointments.length === 0) {

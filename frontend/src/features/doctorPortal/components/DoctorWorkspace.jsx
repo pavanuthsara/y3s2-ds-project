@@ -76,7 +76,7 @@ export default function DoctorWorkspace({
         ) : activeTab === 'availability' ? (
           <DoctorAvailabilityPage />
         ) : (
-          <DoctorPrescriptionsPanel session={session} />
+          <DoctorPrescriptionsPanel profile={profile} session={session} />
         )}
       </div>
     </div>

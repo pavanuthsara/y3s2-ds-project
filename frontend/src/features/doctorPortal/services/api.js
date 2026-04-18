@@ -198,9 +198,15 @@ export const doctorPrescriptionAPI = {
 
 export const doctorAppointmentsAPI = {
   async getDoctorAppointments(doctorUsername) {
+    const headers = {};
+    const token = getToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     return request(`/api/appointments/doctor/${encodeURIComponent(doctorUsername)}`, {
       method: 'GET',
-      headers: getHeaders(true),
+      headers,
     });
   },
 };

@@ -29,6 +29,8 @@ public class AppointmentProxyController {
     public ResponseEntity<?> proxyRequest(
             HttpServletRequest request,
             @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestHeader(value = "X-User-Id", required = false) String userId,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
             @RequestBody(required = false) Object requestBody
     ) {
         // Extract the path after /api/appointments
@@ -46,6 +48,12 @@ public class AppointmentProxyController {
             if (authorization != null) {
                 headers.set("Authorization", authorization);
             }
+            if (userId != null) {
+                headers.set("X-User-Id", userId);
+            }
+            if (userRole != null) {
+                headers.set("X-User-Role", userRole);
+            }
             
             // Re-use content type to pass JSON properly if needed
             if (request.getContentType() != null) {
@@ -58,7 +66,6 @@ public class AppointmentProxyController {
             return restTemplate.exchange(appointmentServiceUrl + fullPath, httpMethod, entity, Object.class);
         } catch (HttpStatusCodeException ex) {
             return ResponseEntity.status(ex.getStatusCode())
-                    .headers(ex.getResponseHeaders())
                     .body(ex.getResponseBodyAsString());
         }
     }
