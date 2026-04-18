@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import DoctorSlotSelector from './DoctorSlotSelector';
-import { PaymentModal } from '../../payments/components';
-import '../styles/AppointmentForm.css';
+import { useState, useEffect } from "react";
+import DoctorSlotSelector from "./DoctorSlotSelector";
+import { PaymentModal } from "../../payments/components";
+import "../styles/AppointmentForm.css";
 
 const DAY_NAME_TO_INDEX = {
   SUNDAY: 0,
@@ -15,24 +15,24 @@ const DAY_NAME_TO_INDEX = {
 
 const formatDateTimeLocal = (date) => {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
 const getNextSlotDateTime = (slot) => {
   if (!slot?.dayOfWeek || !slot?.startTime) {
-    return '';
+    return "";
   }
 
   const targetDay = DAY_NAME_TO_INDEX[slot.dayOfWeek.toUpperCase()];
   if (targetDay === undefined) {
-    return '';
+    return "";
   }
 
-  const [hours = '0', minutes = '0'] = slot.startTime.split(':');
+  const [hours = "0", minutes = "0"] = slot.startTime.split(":");
   const now = new Date();
   const candidate = new Date(now);
   candidate.setSeconds(0, 0);
@@ -48,15 +48,19 @@ const getNextSlotDateTime = (slot) => {
   return formatDateTimeLocal(candidate);
 };
 
-const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSession = null }) => {
+const AppointmentBookingForm = ({
+  onSubmit,
+  isLoading = false,
+  patientIdFromSession = null,
+}) => {
   const [formData, setFormData] = useState({
-    patientId: patientIdFromSession || '',
-    doctorUsername: '',
-    slotId: '',
-    appointmentDateTime: '',
-    appointmentMode: 'VIRTUAL',
-    hospital: '',
-    notes: '',
+    patientId: patientIdFromSession || "",
+    doctorUsername: "",
+    slotId: "",
+    appointmentDateTime: "",
+    appointmentMode: "VIRTUAL",
+    hospital: "",
+    notes: "",
   });
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -71,8 +75,8 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
     if (selectedSlot) {
       setFormData((prev) => ({
         ...prev,
-        doctorUsername: selectedSlot.doctorUsername || '',
-        slotId: selectedSlot.slotId || '',
+        doctorUsername: selectedSlot.doctorUsername || "",
+        slotId: selectedSlot.slotId || "",
         appointmentDateTime: getNextSlotDateTime(selectedSlot),
       }));
     }
@@ -92,28 +96,30 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
     const newErrors = {};
 
     if (!formData.patientId.trim()) {
-      newErrors.patientId = 'Patient ID is required';
+      newErrors.patientId = "Patient ID is required";
     }
     if (!formData.doctorUsername.trim()) {
-      newErrors.doctorUsername = 'Doctor username is required';
+      newErrors.doctorUsername = "Doctor username is required";
     }
     if (!formData.slotId.trim()) {
-      newErrors.slotId = 'Slot ID is required';
+      newErrors.slotId = "Slot ID is required";
     }
     if (!formData.appointmentDateTime) {
-      newErrors.appointmentDateTime = 'Date and time is required';
+      newErrors.appointmentDateTime = "Date and time is required";
     }
     if (!formData.appointmentMode) {
-      newErrors.appointmentMode = 'Appointment mode is required';
+      newErrors.appointmentMode = "Appointment mode is required";
     }
-    if (formData.appointmentMode === 'PHYSICAL' && !formData.hospital.trim()) {
-      newErrors.hospital = 'Hospital/Location is required for physical appointments';
+    if (formData.appointmentMode === "PHYSICAL" && !formData.hospital.trim()) {
+      newErrors.hospital =
+        "Hospital/Location is required for physical appointments";
     }
 
     const selectedDateTime = new Date(formData.appointmentDateTime);
     const now = new Date();
     if (selectedDateTime <= now) {
-      newErrors.appointmentDateTime = 'Appointment date and time must be in the future';
+      newErrors.appointmentDateTime =
+        "Appointment date and time must be in the future";
     }
 
     setErrors(newErrors);
@@ -129,14 +135,14 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
-        [name]: '',
+        [name]: "",
       }));
     }
   };
 
   const handleSlotSelected = (slot) => {
     setSelectedSlot(slot);
-    setSelectedDoctor(slot.doctorName || '');
+    setSelectedDoctor(slot.doctorName || "");
   };
 
   const handleDoctorSelected = (doctor) => {
@@ -153,16 +159,20 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
     try {
       // First create the appointment to get appointmentId
       const response = await onSubmit(formData);
-      
+
       // Extract appointmentId from response (assuming it returns the appointment object)
-      const newAppointmentId = response?.id || response?.appointmentId || 'appointment-' + Date.now();
+      const newAppointmentId =
+        response?.id || response?.appointmentId || "appointment-" + Date.now();
       setAppointmentId(newAppointmentId);
-      
+
       // Then show payment modal
       setAppointmentAmount(50000); // Default appointment cost
       setShowPaymentModal(true);
     } catch (error) {
-      setErrors({ submit: error.message || 'Failed to create appointment. Please try again.' });
+      setErrors({
+        submit:
+          error.message || "Failed to create appointment. Please try again.",
+      });
     }
   };
 
@@ -172,13 +182,13 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
     setShowPaymentModal(false);
     setTimeout(() => {
       setFormData({
-        patientId: patientIdFromSession || '',
-        doctorUsername: '',
-        slotId: '',
-        appointmentDateTime: '',
-        appointmentMode: 'VIRTUAL',
-        hospital: '',
-        notes: '',
+        patientId: patientIdFromSession || "",
+        doctorUsername: "",
+        slotId: "",
+        appointmentDateTime: "",
+        appointmentMode: "VIRTUAL",
+        hospital: "",
+        notes: "",
       });
       setSuccess(false);
       setAppointmentId(null);
@@ -195,11 +205,7 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
         </div>
       )}
 
-      {errors.submit && (
-        <div className="error-message">
-          {errors.submit}
-        </div>
-      )}
+      {errors.submit && <div className="error-message">{errors.submit}</div>}
 
       <div className="appointment-doctor-selector">
         <DoctorSlotSelector
@@ -225,7 +231,7 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
                 value={formData.patientId}
                 onChange={handleChange}
                 placeholder="Enter your patient ID"
-                className={errors.patientId ? 'input-error' : ''}
+                className={errors.patientId ? "input-error" : ""}
               />
               {errors.patientId && (
                 <span className="error-text">{errors.patientId}</span>
@@ -260,21 +266,24 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
           />
 
           <div className="form-group">
-            <label htmlFor="appointmentDateTime">Appointment Date & Time *</label>
+            <label htmlFor="appointmentDateTime">
+              Appointment Date & Time *
+            </label>
             <input
               type="datetime-local"
               id="appointmentDateTime"
               name="appointmentDateTime"
               value={formData.appointmentDateTime}
-              onChange={handleChange}
-              className={errors.appointmentDateTime ? 'input-error' : ''}
+              readOnly
+              className={errors.appointmentDateTime ? "input-error" : ""}
             />
             {errors.appointmentDateTime && (
               <span className="error-text">{errors.appointmentDateTime}</span>
             )}
             {selectedSlot && !errors.appointmentDateTime && (
               <span className="text-sm text-gray-500">
-                Auto-filled from the selected slot. Adjust only if you need a later matching time.
+                Auto-filled from the selected slot. Adjust only if you need a
+                later matching time.
               </span>
             )}
           </div>
@@ -286,7 +295,7 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
               name="appointmentMode"
               value={formData.appointmentMode}
               onChange={handleChange}
-              className={errors.appointmentMode ? 'input-error' : ''}
+              className={errors.appointmentMode ? "input-error" : ""}
             >
               <option value="VIRTUAL">Virtual</option>
               <option value="PHYSICAL">Physical</option>
@@ -296,7 +305,7 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
             )}
           </div>
 
-          {formData.appointmentMode === 'PHYSICAL' && (
+          {formData.appointmentMode === "PHYSICAL" && (
             <div className="form-group">
               <label htmlFor="hospital">Hospital/Location *</label>
               <input
@@ -306,7 +315,7 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
                 value={formData.hospital}
                 onChange={handleChange}
                 placeholder="Enter hospital or location"
-                className={errors.hospital ? 'input-error' : ''}
+                className={errors.hospital ? "input-error" : ""}
               />
               {errors.hospital && (
                 <span className="error-text">{errors.hospital}</span>
@@ -331,7 +340,7 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
             className="btn btn-primary"
             disabled={isLoading}
           >
-            {isLoading ? 'Processing...' : '💳 Proceed to Payment'}
+            {isLoading ? "Processing..." : "💳 Proceed to Payment"}
           </button>
         </form>
       </div>

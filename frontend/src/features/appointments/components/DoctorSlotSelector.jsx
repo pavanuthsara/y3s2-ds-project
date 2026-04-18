@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import doctorService from '../services/doctorService';
-import slotService from '../services/slotService';
-import DoctorCard from './DoctorCard';
-import './DoctorSelector.css';
+import React, { useState, useEffect } from "react";
+import doctorService from "../services/doctorService";
+import slotService from "../services/slotService";
+import DoctorCard from "./DoctorCard";
+import "./DoctorSelector.css";
 
 /**
  * DoctorSlotSelector Component
@@ -13,15 +13,17 @@ const DoctorSlotSelector = ({
   onSlotSelected,
   selectedDoctorUsername,
   selectedSlotId,
-  appointmentMode = 'VIRTUAL',
+  appointmentMode = "VIRTUAL",
 }) => {
   const [doctors, setDoctors] = useState([]);
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandedDoctor, setExpandedDoctor] = useState(selectedDoctorUsername || null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterSpecialization, setFilterSpecialization] = useState('');
+  const [expandedDoctor, setExpandedDoctor] = useState(
+    selectedDoctorUsername || null,
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterSpecialization, setFilterSpecialization] = useState("");
   const [specializations, setSpecializations] = useState([]);
 
   // Fetch doctors and slots on mount
@@ -36,7 +38,9 @@ const DoctorSlotSelector = ({
         setDoctors(doctorsData || []);
 
         // Extract unique specializations
-        const specs = [...new Set(doctorsData?.map((d) => d.specialization).filter(Boolean))];
+        const specs = [
+          ...new Set(doctorsData?.map((d) => d.specialization).filter(Boolean)),
+        ];
         setSpecializations(specs);
 
         // Fetch available slots
@@ -48,8 +52,8 @@ const DoctorSlotSelector = ({
           setExpandedDoctor(doctorsData[0].doctorUsername);
         }
       } catch (err) {
-        console.error('Error loading doctors and slots:', err);
-        setError(err.message || 'Failed to load doctors and slots');
+        console.error("Error loading doctors and slots:", err);
+        setError(err.message || "Failed to load doctors and slots");
       } finally {
         setLoading(false);
       }
@@ -60,9 +64,9 @@ const DoctorSlotSelector = ({
 
   // Filter doctors based on search and specialization
   const filteredDoctors = doctors.filter((doctor) => {
-    const specialization = doctor.specialization || '';
-    const firstName = doctor.firstName || '';
-    const lastName = doctor.lastName || '';
+    const specialization = doctor.specialization || "";
+    const firstName = doctor.firstName || "";
+    const lastName = doctor.lastName || "";
     const matchesSearch =
       !searchTerm ||
       firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,8 +83,7 @@ const DoctorSlotSelector = ({
   const getDoctorSlots = (doctorUsername) => {
     return slots.filter(
       (slot) =>
-        slot.doctorUsername === doctorUsername &&
-        slot.isActive === true
+        slot.doctorUsername === doctorUsername && slot.isActive === true,
     );
   };
 
@@ -91,7 +94,9 @@ const DoctorSlotSelector = ({
   };
 
   const handleDoctorToggle = (doctorUsername) => {
-    setExpandedDoctor(expandedDoctor === doctorUsername ? null : doctorUsername);
+    setExpandedDoctor(
+      expandedDoctor === doctorUsername ? null : doctorUsername,
+    );
     if (onDoctorSelected && expandedDoctor !== doctorUsername) {
       const doctor = doctors.find((d) => d.doctorUsername === doctorUsername);
       if (doctor) {
@@ -154,7 +159,7 @@ const DoctorSlotSelector = ({
       </div>
 
       {/* Doctors List */}
-      <div className="doctors-list">
+      <div className="doctors-list doctors-grid">
         {filteredDoctors.length > 0 ? (
           filteredDoctors.map((doctor) => (
             <DoctorCard
@@ -172,8 +177,8 @@ const DoctorSlotSelector = ({
             <p>No doctors found matching your criteria.</p>
             <button
               onClick={() => {
-                setSearchTerm('');
-                setFilterSpecialization('');
+                setSearchTerm("");
+                setFilterSpecialization("");
               }}
               className="reset-button"
             >
