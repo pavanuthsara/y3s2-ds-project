@@ -153,16 +153,33 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
     try {
       // First create the appointment to get appointmentId
       const response = await onSubmit(formData);
-      
+
       // Extract appointmentId from response (assuming it returns the appointment object)
       const newAppointmentId = response?.id || response?.appointmentId || 'appointment-' + Date.now();
       setAppointmentId(newAppointmentId);
-      
-      // Then show payment modal
-      setAppointmentAmount(50000); // Default appointment cost
+
+      // Use the doctor's consultation fee (fall back to response price if present)
+      const fee = Number(selectedSlot?.consultationFee ?? response?.price);
+      if (!fee || fee <= 0) {
+        setErrors({ submit: 'This doctor has not set a consultation fee. Please contact support.' });
+        return;
+      }
+      setAppointmentAmount(fee);
       setShowPaymentModal(true);
     } catch (error) {
-      setErrors({ submit: error.message || 'Failed to create appointment. Please try again.' });
+      if (error?.status === 409) {
+        setSelectedSlot(null);
+        setFormData((prev) => ({
+          ...prev,
+          slotId: '',
+          appointmentDateTime: '',
+        }));
+        setErrors({
+          submit: 'This slot has already been booked. Please choose a different time slot.',
+        });
+        return;
+      }
+      setErrors({ submit: error?.message || 'Failed to create appointment. Please try again.' });
     }
   };
 

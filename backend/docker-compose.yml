@@ -219,6 +219,9 @@ services:
       timeout: 5s
       retries: 5
 
+<<<<<<< HEAD
+  # PAYMENT SERVICE
+=======
   # TELEMEDICINE SERVICE
   telemedicine-service:
     build:
@@ -264,6 +267,7 @@ services:
       retries: 5
 
   # PAYMENT SERVICE DATABASE
+>>>>>>> main
   payment-postgres:
     image: postgres:16-alpine
     container_name: payment-postgres
@@ -278,12 +282,19 @@ services:
     networks:
       - dsproject-network
     healthcheck:
+<<<<<<< HEAD
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+=======
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+>>>>>>> main
       interval: 10s
       timeout: 5s
       retries: 5
 
+<<<<<<< HEAD
+=======
   # PAYMENT SERVICE
+>>>>>>> main
   payment-service:
     build:
       context: ./payment-service
@@ -297,6 +308,44 @@ services:
       DB_NAME: payment_service_db
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
+<<<<<<< HEAD
+      APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+      STRIPE_SECRET_KEY: "sk_test_51TMvcaA621M92XkWJGzMnqZVd9L8ym0EamEll411jtYQZdKhJS3gAa6HSyA8zVJbFFEsrd4WzIf4RkXGtrFal7M9002YvmoSuX"
+      STRIPE_WEBHOOK_SECRET: "whsec_test_secret"
+      STRIPE_PUBLISHABLE_KEY: "pk_test_key"
+      NOTIFICATION_SERVICE_URL: http://notification-service:8088/api/notifications
+    depends_on:
+      payment-postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # NOTIFICATION SERVICE
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    ports:
+      - "8088:8088"
+    environment:
+      APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
+      MAIL_HOST: "smtp.gmail.com"
+      MAIL_PORT: "587"
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8088/actuator/health || exit 1"]
+=======
       STRIPE_SECRET_KEY: sk_test_51TMvcaA621M92XkWJGzMnqZVd9L8ym0EamEll411jtYQZdKhJS3gAa6HSyA8zVJbFFEsrd4WzIf4RkXGtrFal7M9002YvmoSuX
       STRIPE_PUBLISHABLE_KEY: pk_test_51TMvcaA621M92XkWlrbInOEX3DYU57VAomEhoDr2ua3WZ5FziPiqDHT5lVLkuM8Js0sZeVo8v0vtjxn6fYgrkMvq00wnPkO2EX
       JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
@@ -307,6 +356,7 @@ services:
       - dsproject-network
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1" ]
+>>>>>>> main
       interval: 15s
       timeout: 5s
       retries: 5

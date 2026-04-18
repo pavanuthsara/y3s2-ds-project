@@ -4,6 +4,7 @@ import StripePaymentElement from './StripePaymentElement';
 import PaymentConfirmation from './PaymentConfirmation';
 import PaymentLoader from './PaymentLoader';
 import { getStripe } from '../services/stripeService';
+import { confirmPayment as confirmPaymentOnBackend } from '../services/paymentService';
 
 /**
  * Payment Form Component
@@ -104,6 +105,14 @@ export const PaymentForm = ({
       } else if (result.paymentIntent) {
         // Success
         if (result.paymentIntent.status === 'succeeded' || result.paymentIntent.status === 'requires_action') {
+          // Sync the backend so transaction row flips from PENDING → SUCCESS.
+          // Pass null for paymentMethodId — Stripe already confirmed the intent,
+          // so the backend just needs to retrieve status and update the DB row.
+          try {
+            await confirmPaymentOnBackend(transactionId, null);
+          } catch (syncErr) {
+            console.warn('Backend confirm sync failed (payment still succeeded at Stripe):', syncErr);
+          }
           showToast('Payment completed successfully.', 'success');
           setStep('confirmation');
           onSuccess?.({
