@@ -196,6 +196,15 @@ export const doctorPrescriptionAPI = {
   },
 };
 
+export const doctorAppointmentsAPI = {
+  async getDoctorAppointments(doctorUsername) {
+    return request(`/api/appointments/doctor/${encodeURIComponent(doctorUsername)}`, {
+      method: 'GET',
+      headers: getHeaders(true),
+    });
+  },
+};
+
 export function getStoredDoctorSession() {
   const rawSession = localStorage.getItem(DOCTOR_SESSION_KEY);
   if (!rawSession) {

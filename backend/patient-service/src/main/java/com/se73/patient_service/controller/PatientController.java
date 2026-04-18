@@ -116,7 +116,7 @@ public class PatientController {
     ) {
         try {
             PatientProfile patient = getAuthorizedPatient(authHeader, id);
-            List<PatientPrescriptionResponse> prescriptions = patientRecordsService.getPatientPrescriptions(patient);
+            List<PatientPrescriptionResponse> prescriptions = patientRecordsService.getPatientPrescriptions(patient, authHeader);
             return ResponseEntity.ok(prescriptions);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));

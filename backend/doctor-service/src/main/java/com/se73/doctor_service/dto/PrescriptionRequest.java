@@ -2,11 +2,16 @@ package com.se73.doctor_service.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 import java.util.UUID;
 
 public class PrescriptionRequest {
 	@NotBlank
+	@Pattern(
+		regexp = "^[A-Za-z][A-Za-z0-9._-]{2,49}$",
+		message = "patientId must be a valid patient username"
+	)
 	private String patientId;
 
 	@NotNull

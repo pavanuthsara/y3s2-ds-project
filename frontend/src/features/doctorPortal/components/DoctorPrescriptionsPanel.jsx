@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { doctorPrescriptionAPI } from '../services/api';
+import { useEffect, useMemo, useState } from 'react';
+import { doctorAppointmentsAPI, doctorPrescriptionAPI } from '../services/api';
 
 const EMPTY_FORM = {
   patientId: '',
@@ -23,14 +23,114 @@ const formatDateTime = (value) => {
   return date.toLocaleString();
 };
 
-export default function DoctorPrescriptionsPanel() {
+const normalizeAppointments = (appointments) => {
+  if (!Array.isArray(appointments)) {
+    return [];
+  }
+
+  return appointments
+    .map((appointment) => ({
+      appointmentDateTime: appointment.appointmentDateTime || appointment.createdAt || null,
+      appointmentId: String(appointment.appointmentId || '').trim(),
+      appointmentMode: appointment.appointmentMode || '',
+      hospital: appointment.hospital || '',
+      patientId: String(appointment.patientId || '').trim(),
+      status: appointment.status || 'UNKNOWN',
+    }))
+    .filter((appointment) => appointment.patientId && appointment.appointmentId)
+    .sort((left, right) => {
+      const leftTime = left.appointmentDateTime ? new Date(left.appointmentDateTime).getTime() : 0;
+      const rightTime = right.appointmentDateTime ? new Date(right.appointmentDateTime).getTime() : 0;
+      return rightTime - leftTime;
+    });
+};
+
+export default function DoctorPrescriptionsPanel({ session }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [createBusy, setCreateBusy] = useState(false);
+  const [appointmentsBusy, setAppointmentsBusy] = useState(false);
+  const [appointmentsError, setAppointmentsError] = useState('');
   const [lookupBusy, setLookupBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [patientLookup, setPatientLookup] = useState('');
+  const [appointments, setAppointments] = useState([]);
+  const [selectedPatientId, setSelectedPatientId] = useState('');
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState('');
   const [prescriptions, setPrescriptions] = useState([]);
+
+  const patientOptions = useMemo(() => {
+    const unique = new Set(appointments.map((appointment) => appointment.patientId));
+    return Array.from(unique).sort((left, right) => left.localeCompare(right));
+  }, [appointments]);
+
+  const patientAppointments = useMemo(
+    () => appointments.filter((appointment) => appointment.patientId === selectedPatientId),
+    [appointments, selectedPatientId]
+  );
+
+  const syncLockedIdentifiers = (patientId, appointmentId) => {
+    setForm((current) => ({
+      ...current,
+      patientId,
+      appointmentId,
+    }));
+  };
+
+  const loadDoctorAppointments = async () => {
+    if (!session?.username) {
+      return;
+    }
+
+    setAppointmentsBusy(true);
+    setAppointmentsError('');
+
+    try {
+      const data = await doctorAppointmentsAPI.getDoctorAppointments(session.username);
+      const nextAppointments = normalizeAppointments(data);
+      setAppointments(nextAppointments);
+      if (nextAppointments.length === 0) {
+        setSelectedPatientId('');
+        setSelectedAppointmentId('');
+        syncLockedIdentifiers('', '');
+      }
+    } catch (nextError) {
+      setAppointments([]);
+      setSelectedPatientId('');
+      setSelectedAppointmentId('');
+      syncLockedIdentifiers('', '');
+      setAppointmentsError(nextError.message || 'Failed to load doctor appointments');
+    } finally {
+      setAppointmentsBusy(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDoctorAppointments();
+  }, [session?.username]);
+
+  useEffect(() => {
+    if (appointments.length === 0) {
+      return;
+    }
+
+    const patientExists = patientOptions.includes(selectedPatientId);
+    const nextPatientId = patientExists ? selectedPatientId : patientOptions[0] || '';
+    const matchingAppointments = appointments.filter((appointment) => appointment.patientId === nextPatientId);
+    const appointmentExists = matchingAppointments.some((appointment) => appointment.appointmentId === selectedAppointmentId);
+    const nextAppointmentId = appointmentExists ? selectedAppointmentId : matchingAppointments[0]?.appointmentId || '';
+
+    if (nextPatientId !== selectedPatientId) {
+      setSelectedPatientId(nextPatientId);
+    }
+
+    if (nextAppointmentId !== selectedAppointmentId) {
+      setSelectedAppointmentId(nextAppointmentId);
+    }
+
+    if (form.patientId !== nextPatientId || form.appointmentId !== nextAppointmentId) {
+      syncLockedIdentifiers(nextPatientId, nextAppointmentId);
+    }
+  }, [appointments, patientOptions, selectedPatientId, selectedAppointmentId, form.patientId, form.appointmentId]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -39,14 +139,20 @@ export default function DoctorPrescriptionsPanel() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (!selectedPatientId || !selectedAppointmentId) {
+      setError('Select a patient and appointment from your real appointment records first.');
+      return;
+    }
+
     setCreateBusy(true);
     setError('');
     setMessage('');
 
     try {
       const payload = {
-        patientId: form.patientId.trim(),
-        appointmentId: form.appointmentId.trim(),
+        patientId: selectedPatientId,
+        appointmentId: selectedAppointmentId,
         medication: form.medication.trim(),
         dosage: form.dosage.trim(),
         instructions: form.instructions.trim(),
@@ -55,10 +161,13 @@ export default function DoctorPrescriptionsPanel() {
 
       const created = await doctorPrescriptionAPI.createPrescription(payload);
       setMessage('Prescription created successfully.');
-      setForm(EMPTY_FORM);
+      setForm((current) => ({
+        ...EMPTY_FORM,
+        patientId: selectedPatientId,
+        appointmentId: selectedAppointmentId,
+      }));
 
       if (payload.patientId) {
-        setPatientLookup(payload.patientId);
         const nextPrescriptions = await doctorPrescriptionAPI.getPrescriptionsByPatientId(payload.patientId);
         setPrescriptions(Array.isArray(nextPrescriptions) ? nextPrescriptions : created ? [created] : []);
       }
@@ -71,8 +180,8 @@ export default function DoctorPrescriptionsPanel() {
 
   const handleLookup = async (event) => {
     event.preventDefault();
-    if (!patientLookup.trim()) {
-      setError('Enter a patient id to load prescriptions.');
+    if (!selectedPatientId) {
+      setError('Select a patient from appointment data to load prescriptions.');
       return;
     }
 
@@ -81,7 +190,7 @@ export default function DoctorPrescriptionsPanel() {
     setMessage('');
 
     try {
-      const data = await doctorPrescriptionAPI.getPrescriptionsByPatientId(patientLookup.trim());
+      const data = await doctorPrescriptionAPI.getPrescriptionsByPatientId(selectedPatientId);
       setPrescriptions(Array.isArray(data) ? data : []);
     } catch (nextError) {
       setError(nextError.message || 'Failed to load prescriptions');
@@ -91,6 +200,22 @@ export default function DoctorPrescriptionsPanel() {
     }
   };
 
+  const handlePatientSelection = (event) => {
+    const nextPatientId = event.target.value;
+    const nextAppointments = appointments.filter((appointment) => appointment.patientId === nextPatientId);
+    const nextAppointmentId = nextAppointments[0]?.appointmentId || '';
+
+    setSelectedPatientId(nextPatientId);
+    setSelectedAppointmentId(nextAppointmentId);
+    syncLockedIdentifiers(nextPatientId, nextAppointmentId);
+  };
+
+  const handleAppointmentSelection = (event) => {
+    const nextAppointmentId = event.target.value;
+    setSelectedAppointmentId(nextAppointmentId);
+    syncLockedIdentifiers(selectedPatientId, nextAppointmentId);
+  };
+
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
       <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
@@ -98,9 +223,32 @@ export default function DoctorPrescriptionsPanel() {
           <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Create Prescription</p>
           <h2 className="mt-2 text-2xl font-semibold text-slate-900">Issue medication instructions for a patient</h2>
           <p className="mt-2 text-sm text-slate-600">
-            This writes directly to the doctor-service prescription module through the API gateway.
+            Select a real appointment first. Patient username and appointment ID are then auto-filled and locked.
           </p>
         </div>
+
+        <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span>Appointment source: authenticated doctor schedule</span>
+            <button
+              className="rounded-full border border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={appointmentsBusy}
+              onClick={loadDoctorAppointments}
+              type="button"
+            >
+              {appointmentsBusy ? 'Refreshing...' : 'Refresh appointments'}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-slate-500">
+            Username contract is enforced for patient identifiers.
+          </p>
+        </div>
+
+        {appointmentsError ? (
+          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+            {appointmentsError}
+          </div>
+        ) : null}
 
         {error ? (
           <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -116,15 +264,55 @@ export default function DoctorPrescriptionsPanel() {
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="patientSelect">
+              Select Patient (from appointments)
+            </label>
+            <select
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+              id="patientSelect"
+              onChange={handlePatientSelection}
+              required
+              value={selectedPatientId}
+            >
+              <option value="">Select patient</option>
+              {patientOptions.map((patientId) => (
+                <option key={patientId} value={patientId}>
+                  {patientId}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="appointmentSelect">
+              Select Appointment (for selected patient)
+            </label>
+            <select
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+              id="appointmentSelect"
+              onChange={handleAppointmentSelection}
+              required
+              value={selectedAppointmentId}
+            >
+              <option value="">Select appointment</option>
+              {patientAppointments.map((appointment) => (
+                <option key={appointment.appointmentId} value={appointment.appointmentId}>
+                  {appointment.appointmentId} - {formatDateTime(appointment.appointmentDateTime)} - {appointment.status}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
             <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="patientId">
-              Patient ID
+              Patient Username (locked)
             </label>
             <input
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
               id="patientId"
               name="patientId"
-              onChange={handleChange}
-              placeholder="testpatient"
+              placeholder="Auto-filled from selected patient"
+              readOnly
               required
               type="text"
               value={form.patientId}
@@ -139,8 +327,8 @@ export default function DoctorPrescriptionsPanel() {
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
               id="appointmentId"
               name="appointmentId"
-              onChange={handleChange}
-              placeholder="UUID from appointment booking"
+              placeholder="Auto-filled from selected appointment"
+              readOnly
               required
               type="text"
               value={form.appointmentId}
@@ -221,17 +409,22 @@ export default function DoctorPrescriptionsPanel() {
       <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-6">
           <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Patient Lookup</p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-900">View prescriptions by patient id</h2>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-900">View prescriptions for selected patient</h2>
         </div>
 
         <form className="mb-6 flex flex-col gap-3 sm:flex-row" onSubmit={handleLookup}>
-          <input
+          <select
             className="min-w-0 flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
-            onChange={(event) => setPatientLookup(event.target.value)}
-            placeholder="Enter patient id"
-            type="text"
-            value={patientLookup}
-          />
+            onChange={handlePatientSelection}
+            value={selectedPatientId}
+          >
+            <option value="">Select patient</option>
+            {patientOptions.map((patientId) => (
+              <option key={patientId} value={patientId}>
+                {patientId}
+              </option>
+            ))}
+          </select>
           <button
             className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
             disabled={lookupBusy}
@@ -265,7 +458,7 @@ export default function DoctorPrescriptionsPanel() {
 
                 <div className="mt-4 grid gap-4 text-sm md:grid-cols-2">
                   <div>
-                    <p className="text-slate-500">Patient ID</p>
+                    <p className="text-slate-500">Patient Username</p>
                     <p className="font-medium text-slate-800">{prescription.patientId || 'Not available'}</p>
                   </div>
                   <div>

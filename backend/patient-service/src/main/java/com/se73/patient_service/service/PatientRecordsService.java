@@ -5,6 +5,8 @@ import com.se73.patient_service.dto.PatientPrescriptionResponse;
 import com.se73.patient_service.model.PatientProfile;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -36,14 +38,24 @@ public class PatientRecordsService {
         return getList(url, new ParameterizedTypeReference<>() {}, "appointment history");
     }
 
-    public List<PatientPrescriptionResponse> getPatientPrescriptions(PatientProfile patient) {
+    public List<PatientPrescriptionResponse> getPatientPrescriptions(PatientProfile patient, String authorization) {
         String url = prescriptionServiceBaseUrl + "/patient/" + patient.getUsername();
-        return getList(url, new ParameterizedTypeReference<>() {}, "prescriptions");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", authorization);
+        headers.set("X-User-Id", patient.getUsername());
+        headers.set("X-User-Role", "ROLE_PATIENT");
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        return getList(url, entity, new ParameterizedTypeReference<>() {}, "prescriptions");
     }
 
     private <T> List<T> getList(String url, ParameterizedTypeReference<List<T>> responseType, String label) {
+        return getList(url, null, responseType, label);
+    }
+
+    private <T> List<T> getList(String url, HttpEntity<?> entity, ParameterizedTypeReference<List<T>> responseType, String label) {
         try {
-            ResponseEntity<List<T>> response = restTemplate.exchange(url, HttpMethod.GET, null, responseType);
+            ResponseEntity<List<T>> response = restTemplate.exchange(url, HttpMethod.GET, entity, responseType);
             List<T> body = response.getBody();
             return body == null ? Collections.emptyList() : body;
         } catch (HttpStatusCodeException e) {
