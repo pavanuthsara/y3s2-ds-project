@@ -33,6 +33,9 @@ public class AppointmentProxyController {
     ) {
         // Extract the path after /api/appointments
         String path = request.getRequestURI().replaceFirst("/api/appointments", "");
+        if ("/".equals(path)) {
+            path = "";
+        }
         
         // Append query parameters if present
         String queryString = request.getQueryString();

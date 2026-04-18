@@ -1,6 +1,52 @@
 import { useState, useEffect } from 'react';
 import DoctorSlotSelector from './DoctorSlotSelector';
+import { PaymentModal } from '../../payments/components';
 import '../styles/AppointmentForm.css';
+
+const DAY_NAME_TO_INDEX = {
+  SUNDAY: 0,
+  MONDAY: 1,
+  TUESDAY: 2,
+  WEDNESDAY: 3,
+  THURSDAY: 4,
+  FRIDAY: 5,
+  SATURDAY: 6,
+};
+
+const formatDateTimeLocal = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const getNextSlotDateTime = (slot) => {
+  if (!slot?.dayOfWeek || !slot?.startTime) {
+    return '';
+  }
+
+  const targetDay = DAY_NAME_TO_INDEX[slot.dayOfWeek.toUpperCase()];
+  if (targetDay === undefined) {
+    return '';
+  }
+
+  const [hours = '0', minutes = '0'] = slot.startTime.split(':');
+  const now = new Date();
+  const candidate = new Date(now);
+  candidate.setSeconds(0, 0);
+  candidate.setHours(Number(hours), Number(minutes), 0, 0);
+
+  const daysUntilTarget = (targetDay - now.getDay() + 7) % 7;
+  candidate.setDate(now.getDate() + daysUntilTarget);
+
+  if (candidate <= now) {
+    candidate.setDate(candidate.getDate() + 7);
+  }
+
+  return formatDateTimeLocal(candidate);
+};
 
 const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSession = null }) => {
   const [formData, setFormData] = useState({
@@ -16,6 +62,9 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [appointmentId, setAppointmentId] = useState(null);
+  const [appointmentAmount, setAppointmentAmount] = useState(0);
 
   // Auto-populate fields when slot is selected
   useEffect(() => {
@@ -24,7 +73,7 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
         ...prev,
         doctorUsername: selectedSlot.doctorUsername || '',
         slotId: selectedSlot.slotId || '',
-        appointmentDateTime: '',
+        appointmentDateTime: getNextSlotDateTime(selectedSlot),
       }));
     }
   }, [selectedSlot]);
@@ -102,23 +151,38 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
     }
 
     try {
-      await onSubmit(formData);
-      setSuccess(true);
-      setTimeout(() => {
-        setFormData({
-          patientId: '',
-          doctorUsername: '',
-          slotId: '',
-          appointmentDateTime: '',
-          appointmentMode: 'VIRTUAL',
-          hospital: '',
-          notes: '',
-        });
-        setSuccess(false);
-      }, 2000);
+      // First create the appointment to get appointmentId
+      const response = await onSubmit(formData);
+      
+      // Extract appointmentId from response (assuming it returns the appointment object)
+      const newAppointmentId = response?.id || response?.appointmentId || 'appointment-' + Date.now();
+      setAppointmentId(newAppointmentId);
+      
+      // Then show payment modal
+      setAppointmentAmount(50000); // Default appointment cost
+      setShowPaymentModal(true);
     } catch (error) {
-      setErrors({ submit: error.message || 'Failed to book appointment' });
+      setErrors({ submit: error.message || 'Failed to create appointment. Please try again.' });
     }
+  };
+
+  const handlePaymentSuccess = async () => {
+    // Payment is complete, close modal and show success
+    setSuccess(true);
+    setShowPaymentModal(false);
+    setTimeout(() => {
+      setFormData({
+        patientId: patientIdFromSession || '',
+        doctorUsername: '',
+        slotId: '',
+        appointmentDateTime: '',
+        appointmentMode: 'VIRTUAL',
+        hospital: '',
+        notes: '',
+      });
+      setSuccess(false);
+      setAppointmentId(null);
+    }, 2000);
   };
 
   return (
@@ -208,6 +272,11 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
             {errors.appointmentDateTime && (
               <span className="error-text">{errors.appointmentDateTime}</span>
             )}
+            {selectedSlot && !errors.appointmentDateTime && (
+              <span className="text-sm text-gray-500">
+                Auto-filled from the selected slot. Adjust only if you need a later matching time.
+              </span>
+            )}
           </div>
 
           <div className="form-group">
@@ -262,10 +331,21 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
             className="btn btn-primary"
             disabled={isLoading}
           >
-            {isLoading ? 'Booking...' : 'Book Appointment'}
+            {isLoading ? 'Processing...' : '💳 Proceed to Payment'}
           </button>
         </form>
       </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        appointmentId={appointmentId}
+        patientId={formData.patientId}
+        amount={appointmentAmount}
+        currency="LKR"
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };

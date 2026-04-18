@@ -41,7 +41,7 @@ const appointmentService = {
   // Book a new appointment
   createAppointment: async (appointmentData) => {
     try {
-      const response = await apiClient.post('/', appointmentData);
+      const response = await apiClient.post('', appointmentData);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to book appointment' };
@@ -81,7 +81,7 @@ const appointmentService = {
   // Get all appointments (admin)
   getAllAppointments: async () => {
     try {
-      const response = await apiClient.get('/');
+      const response = await apiClient.get('');
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch appointments' };

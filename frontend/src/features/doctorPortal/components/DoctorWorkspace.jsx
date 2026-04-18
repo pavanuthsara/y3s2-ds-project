@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import DoctorAvailabilityPage from '../../doctorAvailability/pages/DoctorAvailabilityPage';
 import DoctorProfilePanel from './DoctorProfilePanel';
+import DoctorPrescriptionsPanel from './DoctorPrescriptionsPanel';
 
 export default function DoctorWorkspace({
   activeTab,
@@ -50,6 +51,13 @@ export default function DoctorWorkspace({
           >
             Availability
           </button>
+          <button
+            className={`rounded-full px-4 py-2 text-sm font-semibold ${activeTab === 'prescriptions' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}
+            onClick={() => onTabChange('prescriptions')}
+            type="button"
+          >
+            Prescriptions
+          </button>
         </div>
       </section>
 
@@ -65,8 +73,10 @@ export default function DoctorWorkspace({
             profile={profile}
             session={session}
           />
-        ) : (
+        ) : activeTab === 'availability' ? (
           <DoctorAvailabilityPage />
+        ) : (
+          <DoctorPrescriptionsPanel />
         )}
       </div>
     </div>

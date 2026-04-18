@@ -1,14 +1,12 @@
-FROM eclipse-temurin:21-jdk-alpine as builder
-WORKDIR /
-COPY mvnw .
-COPY .mvn .mvn
+# Build stage
+FROM maven:3.9.6-eclipse-temurin-21 AS build
+WORKDIR /app
 COPY pom.xml .
-COPY src src
-RUN chmod +x ./mvnw
-RUN ./mvnw clean package -DskipTests
+COPY src ./src
+RUN mvn package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=builder /target/payment-service-0.0.1-SNAPSHOT.jar payment-service.jar
+COPY --from=build /app/target/*.jar payment-service.jar
 EXPOSE 8086
 ENTRYPOINT ["java", "-jar", "payment-service.jar"]

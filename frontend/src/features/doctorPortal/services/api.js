@@ -179,6 +179,23 @@ export const doctorProfileAPI = {
   },
 };
 
+export const doctorPrescriptionAPI = {
+  async createPrescription(prescription) {
+    return request('/api/prescriptions', {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(prescription),
+    });
+  },
+
+  async getPrescriptionsByPatientId(patientId) {
+    return request(`/api/prescriptions/patient/${encodeURIComponent(patientId)}`, {
+      method: 'GET',
+      headers: getHeaders(true),
+    });
+  },
+};
+
 export function getStoredDoctorSession() {
   const rawSession = localStorage.getItem(DOCTOR_SESSION_KEY);
   if (!rawSession) {
