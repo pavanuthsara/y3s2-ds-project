@@ -48,14 +48,37 @@ public class TelemedicineProxyController {
                 headers.set("Content-Type", request.getContentType());
             }
 
-            HttpEntity<Object> entity = new HttpEntity<>(requestBody, headers);
+            HttpEntity<Object> entity;
+            if ("GET".equalsIgnoreCase(request.getMethod())) {
+                entity = new HttpEntity<>(headers);
+            } else {
+                entity = new HttpEntity<>(requestBody, headers);
+            }
             HttpMethod httpMethod = HttpMethod.valueOf(request.getMethod());
 
-            return restTemplate.exchange(telemedicineServiceUrl + fullPath, httpMethod, entity, Object.class);
+            ResponseEntity<Object> response = restTemplate.exchange(telemedicineServiceUrl + fullPath, httpMethod, entity, Object.class);
+            return ResponseEntity.status(response.getStatusCode())
+                    .headers(filterHeaders(response.getHeaders()))
+                    .body(response.getBody());
         } catch (HttpStatusCodeException ex) {
             return ResponseEntity.status(ex.getStatusCode())
-                    .headers(ex.getResponseHeaders())
+                    .headers(filterHeaders(ex.getResponseHeaders()))
                     .body(ex.getResponseBodyAsString());
         }
+    }
+
+    private HttpHeaders filterHeaders(HttpHeaders originalHeaders) {
+        HttpHeaders filtered = new HttpHeaders();
+        if (originalHeaders != null) {
+            originalHeaders.forEach((key, values) -> {
+                String lowerKey = key.toLowerCase();
+                if (!lowerKey.startsWith("access-control-") &&
+                    !lowerKey.equals("transfer-encoding") &&
+                    !lowerKey.equals("connection")) {
+                    filtered.addAll(key, values);
+                }
+            });
+        }
+        return filtered;
     }
 }

@@ -1,14 +1,19 @@
-import { useState, useEffect } from 'react';
-import AppointmentCard from '../components/AppointmentCard';
-import appointmentService from '../services/appointmentService';
-import '../styles/AppointmentHistory.css';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import AppointmentCard from "../components/AppointmentCard";
+import appointmentService from "../services/appointmentService";
+import { PaymentModal } from "../../payments/components/PaymentModal";
+import "../styles/AppointmentHistory.css";
 
 const AppointmentHistoryPage = ({ patientIdFromSession }) => {
   const [appointments, setAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('ALL'); // ALL, PENDING, CONFIRMED, COMPLETED, CANCELLED
-  const [patientId, setPatientId] = useState(patientIdFromSession || '');
+  const [filter, setFilter] = useState("ALL"); // ALL, PENDING, CONFIRMED, COMPLETED
+  const [patientId, setPatientId] = useState(patientIdFromSession || "");
+  const [selectedPaymentAppointment, setSelectedPaymentAppointment] =
+    useState(null);
+  const navigate = useNavigate();
 
   // Auto-load appointments when patient ID is available
   useEffect(() => {
@@ -30,7 +35,7 @@ const AppointmentHistoryPage = ({ patientIdFromSession }) => {
       const data = await appointmentService.getPatientAppointments(id);
       setAppointments(data || []);
     } catch (err) {
-      setError(err.message || 'Failed to load appointments');
+      setError(err.message || "Failed to load appointments");
       setAppointments([]);
     } finally {
       setIsLoading(false);
@@ -44,17 +49,18 @@ const AppointmentHistoryPage = ({ patientIdFromSession }) => {
       setAppointments((prev) =>
         prev.map((apt) =>
           apt.appointmentId === appointmentId
-            ? { ...apt, status: 'CANCELLED' }
-            : apt
-        )
+            ? { ...apt, status: "CANCELLED" }
+            : apt,
+        ),
       );
     } catch (err) {
-      throw new Error(err.message || 'Failed to cancel appointment');
+      throw new Error(err.message || "Failed to cancel appointment");
     }
   };
 
   const filteredAppointments = appointments.filter((apt) => {
-    if (filter === 'ALL') return true;
+    if (apt.status === "CANCELLED") return false;
+    if (filter === "ALL") return true;
     return apt.status === filter;
   });
 
@@ -107,13 +113,10 @@ const AppointmentHistoryPage = ({ patientIdFromSession }) => {
               <option value="PENDING">Pending</option>
               <option value="CONFIRMED">Confirmed</option>
               <option value="COMPLETED">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
             </select>
           </div>
 
-          {error && (
-            <div className="error-message">{error}</div>
-          )}
+          {error && <div className="error-message">{error}</div>}
 
           {isLoading ? (
             <div className="loading">Loading appointments...</div>
@@ -131,6 +134,10 @@ const AppointmentHistoryPage = ({ patientIdFromSession }) => {
                   key={appointment.appointmentId}
                   appointment={appointment}
                   onCancel={handleCancelAppointment}
+                  onJoinVideoCall={(apt) =>
+                    navigate(`/telemedicine/${apt.appointmentId}`)
+                  }
+                  onPay={(apt) => setSelectedPaymentAppointment(apt)}
                   showActions={true}
                 />
               ))}
@@ -143,6 +150,20 @@ const AppointmentHistoryPage = ({ patientIdFromSession }) => {
         <div className="empty-state">
           <p>Enter your Patient ID to view appointments</p>
         </div>
+      )}
+
+      {selectedPaymentAppointment && (
+        <PaymentModal
+          isOpen={!!selectedPaymentAppointment}
+          appointmentId={selectedPaymentAppointment.appointmentId}
+          patientId={selectedPaymentAppointment.patientId}
+          amount={selectedPaymentAppointment.price}
+          onClose={() => setSelectedPaymentAppointment(null)}
+          onSuccess={() => {
+            fetchAppointments();
+            setSelectedPaymentAppointment(null);
+          }}
+        />
       )}
     </div>
   );

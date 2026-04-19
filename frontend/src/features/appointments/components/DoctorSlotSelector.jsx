@@ -13,7 +13,6 @@ const DoctorSlotSelector = ({
   onSlotSelected,
   selectedDoctorUsername,
   selectedSlotId,
-  appointmentMode = "VIRTUAL",
 }) => {
   const [doctors, setDoctors] = useState([]);
   const [slots, setSlots] = useState([]);
@@ -89,7 +88,12 @@ const DoctorSlotSelector = ({
 
   const handleSlotSelect = (slot) => {
     if (onSlotSelected) {
-      onSlotSelected(slot);
+      const doctor = doctors.find((d) => d.doctorUsername === slot.doctorUsername);
+      onSlotSelected({
+        ...slot,
+        consultationFee: doctor?.consultationFee ?? null,
+        doctorName: slot.doctorName || [doctor?.firstName, doctor?.lastName].filter(Boolean).join(' '),
+      });
     }
   };
 

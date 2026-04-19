@@ -1,25 +1,25 @@
-import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import DoctorAuthPage from '../components/DoctorAuthPage';
-import DoctorWorkspace from '../components/DoctorWorkspace';
+import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+import DoctorAuthPage from "../components/DoctorAuthPage";
+import DoctorWorkspace from "../components/DoctorWorkspace";
 import {
   doctorAuthAPI,
   doctorProfileAPI,
   getStoredDoctorSession,
   isDoctorLoggedIn,
-} from '../services/api';
-import { EMPTY_DOCTOR_PROFILE } from '../components/DoctorProfilePanel';
+} from "../services/api";
+import { EMPTY_DOCTOR_PROFILE } from "../components/DoctorProfilePanel";
 
-function DoctorPortal({ initialTab = 'profile' }) {
+function DoctorPortal({ initialTab = "profile" }) {
   const [session, setSession] = useState(getStoredDoctorSession());
   const [activeTab, setActiveTab] = useState(initialTab);
   const [authBusy, setAuthBusy] = useState(false);
-  const [authError, setAuthError] = useState('');
+  const [authError, setAuthError] = useState("");
   const [profile, setProfile] = useState(null);
   const [profileForm, setProfileForm] = useState(EMPTY_DOCTOR_PROFILE);
   const [profileBusy, setProfileBusy] = useState(false);
-  const [profileError, setProfileError] = useState('');
-  const [profileMessage, setProfileMessage] = useState('');
+  const [profileError, setProfileError] = useState("");
+  const [profileMessage, setProfileMessage] = useState("");
   const [bootstrapping, setBootstrapping] = useState(true);
 
   useEffect(() => {
@@ -64,16 +64,16 @@ function DoctorPortal({ initialTab = 'profile' }) {
 
   const handleAuthSuccess = (nextSession) => {
     setSession(nextSession);
-    setAuthError('');
+    setAuthError("");
     setProfile(null);
     setProfileForm(EMPTY_DOCTOR_PROFILE);
-    setProfileError('');
-    setProfileMessage('');
+    setProfileError("");
+    setProfileMessage("");
   };
 
   const handleLogin = async (form) => {
     setAuthBusy(true);
-    setAuthError('');
+    setAuthError("");
     try {
       const nextSession = await doctorAuthAPI.login(form);
       handleAuthSuccess(nextSession);
@@ -86,7 +86,7 @@ function DoctorPortal({ initialTab = 'profile' }) {
 
   const handleRegister = async (form) => {
     setAuthBusy(true);
-    setAuthError('');
+    setAuthError("");
     try {
       await doctorAuthAPI.register(form);
       const nextSession = await doctorAuthAPI.login({
@@ -109,13 +109,13 @@ function DoctorPortal({ initialTab = 'profile' }) {
   const handleProfileSubmit = async (event) => {
     event.preventDefault();
     setProfileBusy(true);
-    setProfileError('');
-    setProfileMessage('');
+    setProfileError("");
+    setProfileMessage("");
     try {
       const savedProfile = await doctorProfileAPI.upsertOwnProfile(profileForm);
       setProfile(savedProfile);
       setProfileForm(savedProfile);
-      setProfileMessage('Doctor profile saved successfully.');
+      setProfileMessage("Doctor profile saved successfully.");
     } catch (error) {
       setProfileError(error.message);
     } finally {
@@ -128,19 +128,35 @@ function DoctorPortal({ initialTab = 'profile' }) {
     setSession(null);
     setProfile(null);
     setProfileForm(EMPTY_DOCTOR_PROFILE);
-    setActiveTab('profile');
+    setActiveTab("profile");
   };
 
-  if ((initialTab === 'availability' || initialTab === 'prescriptions') && !session) {
+  if (
+    (initialTab === "availability" ||
+      initialTab === "appointments" ||
+      initialTab === "prescriptions") &&
+    !session
+  ) {
     return <Navigate replace to="/doctor" />;
   }
 
   if (bootstrapping && session) {
-    return <div className="px-6 py-10 text-slate-600">Loading doctor workspace...</div>;
+    return (
+      <div className="px-6 py-10 text-slate-600">
+        Loading doctor workspace...
+      </div>
+    );
   }
 
   if (!session) {
-    return <DoctorAuthPage busy={authBusy} error={authError} onLogin={handleLogin} onRegister={handleRegister} />;
+    return (
+      <DoctorAuthPage
+        busy={authBusy}
+        error={authError}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+      />
+    );
   }
 
   return (

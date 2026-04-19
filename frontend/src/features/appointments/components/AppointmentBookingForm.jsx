@@ -165,14 +165,28 @@ const AppointmentBookingForm = ({
         response?.id || response?.appointmentId || "appointment-" + Date.now();
       setAppointmentId(newAppointmentId);
 
-      // Then show payment modal
-      setAppointmentAmount(50000); // Default appointment cost
+      // Use the doctor's consultation fee (fall back to response price if present)
+      const fee = Number(selectedSlot?.consultationFee ?? response?.price);
+      if (!fee || fee <= 0) {
+        setErrors({ submit: 'This doctor has not set a consultation fee. Please contact support.' });
+        return;
+      }
+      setAppointmentAmount(fee);
       setShowPaymentModal(true);
     } catch (error) {
-      setErrors({
-        submit:
-          error.message || "Failed to create appointment. Please try again.",
-      });
+      if (error?.status === 409) {
+        setSelectedSlot(null);
+        setFormData((prev) => ({
+          ...prev,
+          slotId: '',
+          appointmentDateTime: '',
+        }));
+        setErrors({
+          submit: 'This slot has already been booked. Please choose a different time slot.',
+        });
+        return;
+      }
+      setErrors({ submit: error?.message || 'Failed to create appointment. Please try again.' });
     }
   };
 
@@ -213,7 +227,6 @@ const AppointmentBookingForm = ({
           onSlotSelected={handleSlotSelected}
           selectedDoctorUsername={formData.doctorUsername}
           selectedSlotId={formData.slotId}
-          appointmentMode={formData.appointmentMode}
         />
       </div>
 
@@ -282,8 +295,8 @@ const AppointmentBookingForm = ({
             )}
             {selectedSlot && !errors.appointmentDateTime && (
               <span className="text-sm text-gray-500">
-                Auto-filled from the selected slot. Adjust only if you need a
-                later matching time.
+                Auto-filled from the selected slot and cannot be edited
+                manually.
               </span>
             )}
           </div>

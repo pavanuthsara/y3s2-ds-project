@@ -28,5 +28,7 @@ public class PaymentInitiateRequest {
     @NotBlank(message = "Patient ID is required")
     private String patientId;
 
+    private String patientEmail;
+
     private String description;
 }

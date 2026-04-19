@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class PatientRecordsService {
@@ -41,7 +42,19 @@ public class PatientRecordsService {
         return getList(url, new ParameterizedTypeReference<>() {}, "prescriptions");
     }
 
+    public void cancelAppointment(UUID appointmentId) {
+        try {
+            String url = appointmentServiceBaseUrl + "/" + appointmentId;
+            restTemplate.delete(url);
+        } catch (HttpStatusCodeException e) {
+            throw new RuntimeException("Failed to cancel appointment: " + e.getStatusCode().value(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to cancel appointment", e);
+        }
+    }
+
     private <T> List<T> getList(String url, ParameterizedTypeReference<List<T>> responseType, String label) {
+
         try {
             ResponseEntity<List<T>> response = restTemplate.exchange(url, HttpMethod.GET, null, responseType);
             List<T> body = response.getBody();

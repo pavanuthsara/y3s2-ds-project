@@ -44,6 +44,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Agora SDK for server-side token generation -->
+        <dependency>
+            <groupId>io.agora</groupId>
+            <artifactId>authentication</artifactId>
+            <version>2.1.2</version>
+        </dependency>
     </dependencies>
 
     <build>
