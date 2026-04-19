@@ -36,6 +36,9 @@ public class DoctorAvailabilitySlot {
 	@Column(name = "is_available", nullable = false)
 	private boolean active = true;
 
+	@Column(name = "is_reserved", nullable = false)
+    private Boolean isReserved = false; // Initialize with a default value
+
 	public UUID getId() {
 		return id;
 	}

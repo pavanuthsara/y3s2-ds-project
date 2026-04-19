@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/patients")
@@ -224,6 +225,26 @@ public class PatientController {
             getAuthorizedPatient(authHeader, id);
 
             fileStorageService.deleteFile(reportId, id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{id}/appointments/{appointmentId}")
+    public ResponseEntity<?> cancelAppointment(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable Long id,
+            @PathVariable UUID appointmentId
+    ) {
+        try {
+            getAuthorizedPatient(authHeader, id);
+            
+            patientRecordsService.cancelAppointment(appointmentId);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));

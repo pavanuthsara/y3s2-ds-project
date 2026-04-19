@@ -53,6 +53,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
      * @param slotId the slot UUID to check
      * @return true if the slot is already booked
      */
-    boolean existsBySlotId(UUID slotId);
+    boolean existsBySlotIdAndStatusNot(UUID slotId, AppointmentStatus status);
 }
 

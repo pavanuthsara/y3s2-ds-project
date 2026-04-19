@@ -1,5 +1,6 @@
 package com.SE73.appointment_service.service.impl;
 
+import com.SE73.appointment_service.client.DoctorClient;
 import com.SE73.appointment_service.dto.AppointmentRequest;
 import com.SE73.appointment_service.dto.AppointmentResponse;
 import com.SE73.appointment_service.dto.AppointmentStatusUpdateRequest;
@@ -38,10 +39,12 @@ public class AppointmentServiceImpl implements AppointmentService {
     );
 
     private final AppointmentRepository appointmentRepository;
+    private final DoctorClient doctorClient;
 
     // Constructor injection (no field injection)
-    public AppointmentServiceImpl(AppointmentRepository appointmentRepository) {
+    public AppointmentServiceImpl(AppointmentRepository appointmentRepository, DoctorClient doctorClient) {
         this.appointmentRepository = appointmentRepository;
+        this.doctorClient = doctorClient;
     }
 
     // ---------------------------------------------------------------
@@ -62,8 +65,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         logger.info("Creating appointment for patient '{}' with slot '{}'",
                 request.getPatientId(), request.getSlotId());
 
-        // Prevent double-booking: check if slot is already taken
-        if (appointmentRepository.existsBySlotId(request.getSlotId())) {
+        // Prevent double-booking: check if slot is already taken by a non-cancelled appointment
+        if (appointmentRepository.existsBySlotIdAndStatusNot(request.getSlotId(), AppointmentStatus.CANCELLED)) {
             logger.warn("Slot '{}' is already booked", request.getSlotId());
             throw new SlotAlreadyBookedException(
                     "Slot " + request.getSlotId() + " is already booked. Please choose a different slot."
@@ -172,6 +175,10 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment updated = appointmentRepository.save(appointment);
         logger.info("Appointment '{}' status updated to '{}'", id, newStatus);
 
+        if (newStatus == AppointmentStatus.CANCELLED) {
+            doctorClient.updateSlotStatus(updated.getSlotId(), true);
+        }
+
         return mapToResponse(updated);
     }
 
@@ -192,6 +199,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment cancelled = appointmentRepository.save(appointment);
         logger.info("Appointment '{}' has been cancelled", id);
+
+        doctorClient.updateSlotStatus(cancelled.getSlotId(), true);
 
         return mapToResponse(cancelled);
     }
