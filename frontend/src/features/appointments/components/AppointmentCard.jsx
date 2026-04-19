@@ -1,19 +1,28 @@
-import { useState } from 'react';
-import StatusBadge from './StatusBadge';
-import '../styles/AppointmentCard.css';
+import { useState } from "react";
+import StatusBadge from "./StatusBadge";
+import "../styles/AppointmentCard.css";
 
-const AppointmentCard = ({ appointment, onCancel, onReschedule, onPay, showActions = true }) => {
+const AppointmentCard = ({
+  appointment,
+  onCancel,
+  onReschedule,
+  onPay,
+  onJoinVideoCall,
+  onConfirmAppointment,
+  showPaymentAction = true,
+  showActions = true,
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleCancel = async () => {
-    if (window.confirm('Are you sure you want to cancel this appointment?')) {
+    if (window.confirm("Are you sure you want to cancel this appointment?")) {
       setIsLoading(true);
       try {
         await onCancel(appointment.appointmentId);
         setError(null);
       } catch (err) {
-        setError(err.message || 'Failed to cancel appointment');
+        setError(err.message || "Failed to cancel appointment");
       } finally {
         setIsLoading(false);
       }
@@ -22,27 +31,48 @@ const AppointmentCard = ({ appointment, onCancel, onReschedule, onPay, showActio
 
   const formatDateTime = (dateTime) => {
     const date = new Date(dateTime);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-  const canCancel = ['PENDING', 'CONFIRMED'].includes(appointment.status);
+  const appointmentMode = String(appointment.appointmentMode || "")
+    .trim()
+    .toUpperCase();
+  const appointmentStatus = String(appointment.status || "")
+    .trim()
+    .toUpperCase();
+  const isVirtualAppointment = appointmentMode === "VIRTUAL";
+  const canCancel = ["PENDING", "CONFIRMED"].includes(appointmentStatus);
+  const canJoinVideoCall =
+    Boolean(onJoinVideoCall) &&
+    isVirtualAppointment &&
+    !["CANCELLED", "COMPLETED"].includes(appointmentStatus);
+  const isJoinDisabled = appointmentStatus !== "CONFIRMED";
+  const joinButtonLabel =
+    appointmentStatus === "CONFIRMED"
+      ? "Join Video Call"
+      : "Video Call Pending";
 
   return (
     <div className="appointment-card">
       {error && <div className="error-message">{error}</div>}
-      
+
       <div className="appointment-card-header">
         <div>
           <h3>Dr. {appointment.doctorUsername}</h3>
-          <p className="appointment-date">{formatDateTime(appointment.appointmentDateTime)}</p>
+          <p className="appointment-date">
+            {formatDateTime(appointment.appointmentDateTime)}
+          </p>
         </div>
-        <StatusBadge status={appointment.status} paymentStatus={appointment.paymentStatus} />
+        <StatusBadge
+          status={appointment.status}
+          paymentStatus={appointment.paymentStatus}
+        />
       </div>
 
       <div className="appointment-card-body">
@@ -53,7 +83,7 @@ const AppointmentCard = ({ appointment, onCancel, onReschedule, onPay, showActio
 
         <div className="appointment-detail">
           <span className="label">Mode:</span>
-          <span className="value">{appointment.appointmentMode || 'N/A'}</span>
+          <span className="value">{appointment.appointmentMode || "N/A"}</span>
         </div>
 
         {appointment.hospital && (
@@ -91,7 +121,7 @@ const AppointmentCard = ({ appointment, onCancel, onReschedule, onPay, showActio
               onClick={handleCancel}
               disabled={isLoading}
             >
-              {isLoading ? 'Canceling...' : 'Cancel Appointment'}
+              {isLoading ? "Canceling..." : "Cancel Appointment"}
             </button>
           )}
           {onReschedule && (
@@ -103,7 +133,30 @@ const AppointmentCard = ({ appointment, onCancel, onReschedule, onPay, showActio
               Reschedule
             </button>
           )}
-          {appointment.paymentStatus === 'PENDING' && (
+          {canJoinVideoCall && (
+            <button
+              className="btn btn-primary"
+              title={
+                isJoinDisabled
+                  ? "The appointment must be confirmed before joining the call."
+                  : "Join the telemedicine call"
+              }
+              onClick={() => onJoinVideoCall(appointment)}
+              disabled={isLoading || isJoinDisabled}
+            >
+              {joinButtonLabel}
+            </button>
+          )}
+          {onConfirmAppointment && appointmentStatus === "PENDING" && (
+            <button
+              className="btn btn-secondary"
+              onClick={() => onConfirmAppointment(appointment)}
+              disabled={isLoading}
+            >
+              Confirm Appointment
+            </button>
+          )}
+          {showPaymentAction && appointment.paymentStatus === "PENDING" && (
             <button
               className="btn btn-primary"
               onClick={() => onPay?.(appointment)}
