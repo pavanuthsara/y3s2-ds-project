@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import AppointmentCard from '../components/AppointmentCard';
 import appointmentService from '../services/appointmentService';
+import { PaymentModal } from '../../payments/components/PaymentModal';
 import '../styles/AppointmentHistory.css';
 
 const AppointmentHistoryPage = ({ patientIdFromSession }) => {
   const [appointments, setAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('ALL'); // ALL, PENDING, CONFIRMED, COMPLETED, CANCELLED
+  const [filter, setFilter] = useState('ALL'); // ALL, PENDING, CONFIRMED, COMPLETED
   const [patientId, setPatientId] = useState(patientIdFromSession || '');
+  const [selectedPaymentAppointment, setSelectedPaymentAppointment] = useState(null);
 
   // Auto-load appointments when patient ID is available
   useEffect(() => {
@@ -54,6 +56,7 @@ const AppointmentHistoryPage = ({ patientIdFromSession }) => {
   };
 
   const filteredAppointments = appointments.filter((apt) => {
+    if (apt.status === 'CANCELLED') return false;
     if (filter === 'ALL') return true;
     return apt.status === filter;
   });
@@ -107,7 +110,6 @@ const AppointmentHistoryPage = ({ patientIdFromSession }) => {
               <option value="PENDING">Pending</option>
               <option value="CONFIRMED">Confirmed</option>
               <option value="COMPLETED">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
             </select>
           </div>
 
@@ -131,6 +133,7 @@ const AppointmentHistoryPage = ({ patientIdFromSession }) => {
                   key={appointment.appointmentId}
                   appointment={appointment}
                   onCancel={handleCancelAppointment}
+                  onPay={(apt) => setSelectedPaymentAppointment(apt)}
                   showActions={true}
                 />
               ))}
@@ -143,6 +146,20 @@ const AppointmentHistoryPage = ({ patientIdFromSession }) => {
         <div className="empty-state">
           <p>Enter your Patient ID to view appointments</p>
         </div>
+      )}
+
+      {selectedPaymentAppointment && (
+        <PaymentModal
+          isOpen={!!selectedPaymentAppointment}
+          appointmentId={selectedPaymentAppointment.appointmentId}
+          patientId={selectedPaymentAppointment.patientId}
+          amount={selectedPaymentAppointment.price}
+          onClose={() => setSelectedPaymentAppointment(null)}
+          onSuccess={() => {
+            fetchAppointments();
+            setSelectedPaymentAppointment(null);
+          }}
+        />
       )}
     </div>
   );
