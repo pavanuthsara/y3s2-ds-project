@@ -7,10 +7,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -60,6 +62,37 @@ public class PrescriptionProxyController {
         HttpHeaders headers = buildForwardHeaders(request);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
         return forwardRequest(prescriptionServiceBaseUrl + "/patient/" + patientId, HttpMethod.GET, entity);
+    }
+
+    @GetMapping("/doctor/{doctorUsername}")
+    public ResponseEntity<?> getPrescriptionsByDoctorUsername(
+            HttpServletRequest request,
+            @PathVariable String doctorUsername
+    ) {
+        HttpHeaders headers = buildForwardHeaders(request);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        return forwardRequest(prescriptionServiceBaseUrl + "/doctor/" + doctorUsername, HttpMethod.GET, entity);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updatePrescription(
+            HttpServletRequest request,
+            @PathVariable String id,
+            @RequestBody Map<String, Object> body
+    ) {
+        HttpHeaders headers = buildForwardHeaders(request);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+        return forwardRequest(prescriptionServiceBaseUrl + "/" + id, HttpMethod.PUT, entity);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePrescription(
+            HttpServletRequest request,
+            @PathVariable String id
+    ) {
+        HttpHeaders headers = buildForwardHeaders(request);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        return forwardRequest(prescriptionServiceBaseUrl + "/" + id, HttpMethod.DELETE, entity);
     }
 
     private ResponseEntity<?> forwardRequest(String url, HttpMethod method, HttpEntity<?> entity) {

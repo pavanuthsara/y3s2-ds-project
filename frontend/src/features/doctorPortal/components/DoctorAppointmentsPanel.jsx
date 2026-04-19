@@ -32,6 +32,12 @@ export default function DoctorAppointmentsPanel({ session }) {
     }
   };
 
+  const handleAddPrescription = (appointment) => {
+    navigate(
+      `/doctor/prescriptions?appointmentId=${encodeURIComponent(appointment.appointmentId)}&patientId=${encodeURIComponent(appointment.patientId)}`,
+    );
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -131,6 +137,7 @@ export default function DoctorAppointmentsPanel({ session }) {
                 key={appointment.appointmentId}
                 appointment={appointment}
                 onConfirmAppointment={handleConfirmAppointment}
+                onAddPrescription={handleAddPrescription}
                 onJoinVideoCall={(apt) =>
                   navigate(`/telemedicine/${apt.appointmentId}`)
                 }
