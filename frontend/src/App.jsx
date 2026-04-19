@@ -1,14 +1,14 @@
-import './App.css'
+import "./App.css";
 
-import { Routes, Route, Link, Navigate } from 'react-router-dom'
-import Home from './components/Home'
-import About from './components/About'
-import Contact from './components/Contact'
-import PatientPortal from './features/patientPortal/pages/PatientPortal'
-import DoctorPortal from './features/doctorPortal/pages/DoctorPortal'
-import { PaymentPage } from './features/payments/pages'
-import HealthLanding from './components/HealthLanding'
-
+import { Routes, Route, Link, Navigate } from "react-router-dom";
+import Home from "./components/Home";
+import About from "./components/About";
+import Contact from "./components/Contact";
+import PatientPortal from "./features/patientPortal/pages/PatientPortal";
+import DoctorPortal from "./features/doctorPortal/pages/DoctorPortal";
+import { PaymentPage } from "./features/payments/pages";
+import HealthLanding from "./components/HealthLanding";
+import TelemedicinePage from "./features/telemedicine/pages/TelemedicinePage";
 
 function App() {
   return (
@@ -40,10 +40,30 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/patient" element={<PatientPortal />} />
           <Route path="/patient/payments" element={<PaymentPage />} />
-          <Route path="/payments/confirmation" element={<Navigate to="/patient/payments" replace />} />
-          <Route path="/doctor" element={<DoctorPortal initialTab="profile" />} />
-          <Route path="/doctor/availability" element={<DoctorPortal initialTab="availability" />} />
-          <Route path="/doctor/prescriptions" element={<DoctorPortal initialTab="prescriptions" />} />
+          <Route
+            path="/telemedicine/:appointmentId"
+            element={<TelemedicinePage />}
+          />
+          <Route
+            path="/payments/confirmation"
+            element={<Navigate to="/patient/payments" replace />}
+          />
+          <Route
+            path="/doctor"
+            element={<DoctorPortal initialTab="profile" />}
+          />
+          <Route
+            path="/doctor/availability"
+            element={<DoctorPortal initialTab="availability" />}
+          />
+          <Route
+            path="/doctor/appointments"
+            element={<DoctorPortal initialTab="appointments" />}
+          />
+          <Route
+            path="/doctor/prescriptions"
+            element={<DoctorPortal initialTab="prescriptions" />}
+          />
         </Routes>
       </main>
     </div>
