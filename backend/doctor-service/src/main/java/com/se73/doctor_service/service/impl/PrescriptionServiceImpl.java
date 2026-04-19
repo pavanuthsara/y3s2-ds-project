@@ -2,6 +2,7 @@ package com.se73.doctor_service.service.impl;
 
 import com.se73.doctor_service.dto.PrescriptionRequest;
 import com.se73.doctor_service.dto.PrescriptionResponse;
+import com.se73.doctor_service.dto.PrescriptionUpdateRequest;
 import com.se73.doctor_service.model.Prescription;
 import com.se73.doctor_service.repository.PrescriptionRepository;
 import com.se73.doctor_service.service.PrescriptionService;
@@ -55,10 +56,53 @@ public class PrescriptionServiceImpl implements PrescriptionService {
 			throw new IllegalArgumentException("Patient id is required");
 		}
 
-		List<Prescription> prescriptions = repository.findByPatientId(patientId);
+		List<Prescription> prescriptions = repository.findByPatientIdOrderByIssuedAtDesc(patientId);
 		return prescriptions.stream()
 			.map(this::toResponse)
 			.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<PrescriptionResponse> getPrescriptionsByDoctorUsername(String doctorUsername) {
+		if (!StringUtils.hasText(doctorUsername)) {
+			throw new IllegalArgumentException("Doctor username is required");
+		}
+
+		List<Prescription> prescriptions = repository.findByDoctorUsernameOrderByIssuedAtDesc(doctorUsername);
+		return prescriptions.stream()
+			.map(this::toResponse)
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public PrescriptionResponse updatePrescription(String doctorUsername, UUID prescriptionId, PrescriptionUpdateRequest request) {
+		validateDoctorUsername(doctorUsername);
+		if (prescriptionId == null) {
+			throw new IllegalArgumentException("Prescription id is required");
+		}
+		validateUpdateRequest(request);
+
+		Prescription prescription = repository.findByIdAndDoctorUsername(prescriptionId, doctorUsername)
+			.orElseThrow(() -> new IllegalArgumentException("Prescription not found"));
+
+		prescription.setMedication(request.getMedication().trim());
+		prescription.setDosage(request.getDosage().trim());
+		prescription.setInstructions(request.getInstructions().trim());
+		prescription.setNotes(trimNullable(request.getNotes()));
+
+		return toResponse(repository.save(prescription));
+	}
+
+	@Override
+	public void deletePrescription(String doctorUsername, UUID prescriptionId) {
+		validateDoctorUsername(doctorUsername);
+		if (prescriptionId == null) {
+			throw new IllegalArgumentException("Prescription id is required");
+		}
+
+		Prescription prescription = repository.findByIdAndDoctorUsername(prescriptionId, doctorUsername)
+			.orElseThrow(() -> new IllegalArgumentException("Prescription not found"));
+		repository.delete(prescription);
 	}
 
 	private void validateDoctorUsername(String doctorUsername) {
@@ -68,6 +112,12 @@ public class PrescriptionServiceImpl implements PrescriptionService {
 	}
 
 	private void validateRequest(PrescriptionRequest request) {
+		if (request == null) {
+			throw new IllegalArgumentException("Prescription payload is required");
+		}
+	}
+
+	private void validateUpdateRequest(PrescriptionUpdateRequest request) {
 		if (request == null) {
 			throw new IllegalArgumentException("Prescription payload is required");
 		}

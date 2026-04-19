@@ -9,6 +9,7 @@ const AppointmentCard = ({
   onPay,
   onJoinVideoCall,
   onConfirmAppointment,
+  onAddPrescription,
   showPaymentAction = true,
   showActions = true,
 }) => {
@@ -154,6 +155,19 @@ const AppointmentCard = ({
               disabled={isLoading}
             >
               Confirm Appointment
+            </button>
+          )}
+          {onAddPrescription && (
+            <button
+              className="btn btn-primary"
+              onClick={() => onAddPrescription(appointment)}
+              disabled={
+                isLoading ||
+                !appointment.appointmentId ||
+                !appointment.patientId
+              }
+            >
+              Add Prescription
             </button>
           )}
           {showPaymentAction && appointment.paymentStatus === "PENDING" && (
