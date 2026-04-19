@@ -7,6 +7,7 @@ export default function DoctorAppointmentsPanel({ session }) {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [hideCancelled, setHideCancelled] = useState(false);
   const navigate = useNavigate();
 
   const handleConfirmAppointment = async (appointment) => {
@@ -85,13 +86,26 @@ export default function DoctorAppointmentsPanel({ session }) {
             active.
           </p>
         </div>
-        <button
-          className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-          onClick={() => window.location.reload()}
-          type="button"
-        >
-          Reload appointments
-        </button>
+        <div className="flex flex-col gap-2 md:flex-row">
+          <button
+            className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+              hideCancelled
+                ? "border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100"
+                : "border-slate-300 text-slate-700 hover:bg-slate-50"
+            }`}
+            onClick={() => setHideCancelled(!hideCancelled)}
+            type="button"
+          >
+            {hideCancelled ? "Show cancelled" : "Hide cancelled"}
+          </button>
+          <button
+            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            onClick={() => window.location.reload()}
+            type="button"
+          >
+            Reload appointments
+          </button>
+        </div>
       </div>
 
       {error ? (
@@ -110,18 +124,20 @@ export default function DoctorAppointmentsPanel({ session }) {
         </div>
       ) : (
         <div className="mt-6 grid gap-5">
-          {appointments.map((appointment) => (
-            <AppointmentCard
-              key={appointment.appointmentId}
-              appointment={appointment}
-              onConfirmAppointment={handleConfirmAppointment}
-              onJoinVideoCall={(apt) =>
-                navigate(`/telemedicine/${apt.appointmentId}`)
-              }
-              showPaymentAction={false}
-              showActions={true}
-            />
-          ))}
+          {appointments
+            .filter((apt) => !hideCancelled || apt.status !== "CANCELLED")
+            .map((appointment) => (
+              <AppointmentCard
+                key={appointment.appointmentId}
+                appointment={appointment}
+                onConfirmAppointment={handleConfirmAppointment}
+                onJoinVideoCall={(apt) =>
+                  navigate(`/telemedicine/${apt.appointmentId}`)
+                }
+                showPaymentAction={false}
+                showActions={true}
+              />
+            ))}
         </div>
       )}
     </div>
