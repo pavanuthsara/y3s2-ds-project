@@ -30,7 +30,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -50,7 +50,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -75,7 +75,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -95,7 +95,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -129,7 +129,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -149,7 +149,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -172,7 +172,7 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -258,7 +258,11 @@ services:
     networks:
       - dsproject-network
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8087/api/symptoms/health || exit 1" ]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://localhost:8087/api/symptoms/health || exit 1",
+        ]
       interval: 15s
       timeout: 5s
       retries: 5
