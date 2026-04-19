@@ -44,7 +44,13 @@ const appointmentService = {
       const response = await apiClient.post('', appointmentData);
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Failed to book appointment' };
+      const status = error.response?.status;
+      const data = error.response?.data || {};
+      throw {
+        status,
+        message: data.message || 'Failed to book appointment',
+        timestamp: data.timestamp,
+      };
     }
   },
 

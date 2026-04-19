@@ -30,7 +30,7 @@ const StatusBadge = ({ status, paymentStatus }) => {
       )}
       {paymentStatus && (
         <span className={`badge ${getPaymentStatusColor(paymentStatus)}`}>
-          {paymentStatus}
+          {paymentStatus === 'PENDING' ? 'Payment pending' : paymentStatus}
         </span>
       )}
     </div>

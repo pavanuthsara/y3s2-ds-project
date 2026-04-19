@@ -2,7 +2,7 @@ import { useState } from 'react';
 import StatusBadge from './StatusBadge';
 import '../styles/AppointmentCard.css';
 
-const AppointmentCard = ({ appointment, onCancel, onReschedule, showActions = true }) => {
+const AppointmentCard = ({ appointment, onCancel, onReschedule, onPay, showActions = true }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -101,6 +101,15 @@ const AppointmentCard = ({ appointment, onCancel, onReschedule, showActions = tr
               disabled={!canCancel || isLoading}
             >
               Reschedule
+            </button>
+          )}
+          {appointment.paymentStatus === 'PENDING' && (
+            <button
+              className="btn btn-primary"
+              onClick={() => onPay?.(appointment)}
+              disabled={isLoading}
+            >
+              Proceed to Payment
             </button>
           )}
         </div>

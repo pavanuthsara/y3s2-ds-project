@@ -56,6 +56,13 @@ public class DoctorAvailabilityService {
 		repository.delete(slot);
 	}
 
+	public void updateSlotStatus(UUID slotId, boolean active) {
+		DoctorAvailabilitySlot slot = repository.findById(slotId)
+				.orElseThrow(() -> new IllegalArgumentException("Availability slot not found with id: " + slotId));
+		slot.setActive(active);
+		repository.save(slot);
+	}
+
 	private List<DoctorAvailabilitySlot> mapRequests(String doctorUsername, List<AvailabilitySlotRequest> requests) {
 		List<DoctorAvailabilitySlot> slots = new ArrayList<>();
 		for (AvailabilitySlotRequest request : requests) {

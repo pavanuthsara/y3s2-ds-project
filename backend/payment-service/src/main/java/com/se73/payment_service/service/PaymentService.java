@@ -1,5 +1,6 @@
 package com.se73.payment_service.service;
 
+import com.se73.payment_service.client.NotificationClient;
 import com.se73.payment_service.dto.PaymentInitiateRequest;
 import com.se73.payment_service.dto.PaymentResponse;
 import com.se73.payment_service.dto.TransactionHistoryResponse;
@@ -25,14 +26,17 @@ public class PaymentService {
 
     private final PaymentTransactionRepository transactionRepository;
     private final StripePaymentService stripePaymentService;
+    private final NotificationClient notificationClient;
 
     @Value("${stripe.publishable-key}")
     private String stripePublishableKey;
 
     public PaymentService(PaymentTransactionRepository transactionRepository,
-                         StripePaymentService stripePaymentService) {
+                         StripePaymentService stripePaymentService,
+                         NotificationClient notificationClient) {
         this.transactionRepository = transactionRepository;
         this.stripePaymentService = stripePaymentService;
+        this.notificationClient = notificationClient;
     }
 
     @Transactional
@@ -63,6 +67,11 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId) {
+        return confirmPayment(transactionIdStr, paymentMethodId, null);
+    }
+
+    @Transactional
+    public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId, String bearerToken) {
         try {
             log.info("Confirming payment for transaction: {} with method: {}", transactionIdStr, paymentMethodId);
 
@@ -84,6 +93,9 @@ public class PaymentService {
                 transaction.setStatus(PaymentTransaction.TransactionStatus.SUCCESS);
                 transaction.setPaidAt(LocalDateTime.now());
                 transactionRepository.save(transaction);
+                
+                // Fire-and-forget notification to notification-service
+                notificationClient.sendPaymentConfirmed(transaction, bearerToken);
                 
                 // Return response
                 PaymentResponse response = new PaymentResponse();
@@ -107,6 +119,11 @@ public class PaymentService {
                 transaction.setStatus(PaymentTransaction.TransactionStatus.SUCCESS);
                 transaction.setPaidAt(LocalDateTime.now());
                 log.info("Payment succeeded for transaction: {}", transaction.getId());
+                
+                transactionRepository.save(transaction);
+                
+                // Fire-and-forget notification to notification-service
+                notificationClient.sendPaymentConfirmed(transaction, bearerToken);
             } else if ("requires_payment_method".equals(paymentIntent.getStatus())) {
                 throw new PaymentException("Payment method declined or invalid");
             } else if ("requires_action".equals(paymentIntent.getStatus())) {
@@ -115,9 +132,15 @@ public class PaymentService {
                 transaction.setStatus(PaymentTransaction.TransactionStatus.FAILED);
                 transaction.setFailureReason("Payment status: " + paymentIntent.getStatus());
                 log.warn("Payment failed for transaction: {}", transaction.getId());
+                
+                transactionRepository.save(transaction);
+                
+                // Payment failed — skip confirmation notification.
             }
 
-            transactionRepository.save(transaction);
+            if (!"succeeded".equals(paymentIntent.getStatus())) {
+                transactionRepository.save(transaction);
+            }
             return buildPaymentResponse(transaction, paymentIntent);
 
         } catch (StripeException e) {
@@ -187,6 +210,7 @@ public class PaymentService {
         PaymentTransaction transaction = new PaymentTransaction();
         transaction.setAppointmentId(request.getAppointmentId());
         transaction.setPatientId(request.getPatientId());
+        transaction.setPatientEmail(request.getPatientEmail());
         transaction.setAmount(request.getAmount());
         transaction.setCurrency(request.getCurrency());
         transaction.setPaymentGateway(PaymentTransaction.PaymentGateway.STRIPE);
@@ -237,4 +261,5 @@ public class PaymentService {
                 transaction.getCreatedAt()
         );
     }
+
 }

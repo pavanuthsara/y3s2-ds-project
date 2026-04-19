@@ -56,7 +56,7 @@ export const PaymentPage = ({ patientId }) => {
 
       {/* Detail Modal */}
       {selectedTransaction && !showRefundConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
             {/* Modal Header */}
             <div className="border-b p-4 flex justify-between items-center">
@@ -131,7 +131,7 @@ export const PaymentPage = ({ patientId }) => {
 
       {/* Refund Confirmation Modal */}
       {showRefundConfirm && selectedTransaction && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
             {/* Modal Header */}
             <div className="border-b p-4">

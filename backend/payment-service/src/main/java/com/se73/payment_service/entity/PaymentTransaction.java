@@ -26,6 +26,9 @@ public class PaymentTransaction {
     @Column(nullable = false)
     private String patientId;
 
+    @Column(length = 255)
+    private String patientEmail;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
