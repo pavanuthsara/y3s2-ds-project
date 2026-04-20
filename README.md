@@ -509,7 +509,8 @@ The database includes tables for:
 - **Notifications**: Notification logs
 - **AvailabilitySchedule**: Doctor availability slots
 
-See database initialization script: [db/init/01-create-databases.sql](db/init/01-create-databases.sql)
+See database bootstrap script: [db/init/01-create-databases.sql](db/init/01-create-databases.sql)
+Service schemas are managed with Flyway migrations under each backend service's `src/main/resources/db/migration/` directory.
 
 ## 🐛 Troubleshooting
 
