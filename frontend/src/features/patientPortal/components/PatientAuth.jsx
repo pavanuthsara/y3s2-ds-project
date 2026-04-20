@@ -1,22 +1,26 @@
-import { useState } from 'react';
-import { authAPI } from '../services/api';
+import { useState } from "react";
+import { authAPI } from "../services/api";
 
 export function PatientAuth({ onLoginSuccess }) {
   const [isLogin, setIsLogin] = useState(true);
-  
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  
-  const [email, setEmail] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  
-  const [error, setError] = useState('');
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const inputClassName =
+    "block w-full rounded-xl border border-slate-300/80 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100";
+  const labelClassName = "mb-1.5 block text-sm font-semibold text-slate-700";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
@@ -24,7 +28,13 @@ export function PatientAuth({ onLoginSuccess }) {
         const result = await authAPI.login(username, password);
         onLoginSuccess(result);
       } else {
-        const result = await authAPI.register(username, email, password, firstName, lastName);
+        const result = await authAPI.register(
+          username,
+          email,
+          password,
+          firstName,
+          lastName,
+        );
         onLoginSuccess(result);
       }
     } catch (err) {
@@ -35,90 +45,150 @@ export function PatientAuth({ onLoginSuccess }) {
   };
 
   return (
-    <div className="flex-grow flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-transparent">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <h2 className="mt-2 text-center text-3xl font-extrabold text-slate-900 tracking-tight">
-          CareConnect Patient
-        </h2>
-        <p className="mt-2 text-center text-sm text-slate-600">
-          {isLogin ? 'Sign in to access your health portal' : 'Create an account to manage your healthcare'}
-        </p>
-      </div>
+    <div className="flex min-h-[calc(100vh-4rem)] w-full items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+      <div className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white/95 p-5 shadow-[0_16px_50px_-22px_rgba(15,23,42,0.45)] sm:p-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
+            CareConnect Patient
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            {isLogin
+              ? "Sign in to access your health portal"
+              : "Create an account to manage your healthcare"}
+          </p>
+        </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white/70 backdrop-blur-xl py-8 px-4 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05),_0_0_20px_rgba(167,139,250,0.1)] sm:rounded-2xl sm:px-10 border border-white/90">
-          
-          <div className="flex mb-6 border-b border-slate-200/60">
-            <button
-              onClick={() => { setIsLogin(true); setError(''); }}
-              className={`flex-1 py-3 text-sm font-semibold text-center border-b-2 transition-colors ${isLogin ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => { setIsLogin(false); setError(''); }}
-              className={`flex-1 py-3 text-sm font-semibold text-center border-b-2 transition-colors ${!isLogin ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
-            >
-              Register
-            </button>
+        <div className="mt-6 flex rounded-xl border border-slate-200 bg-slate-50 p-1.5">
+          <button
+            onClick={() => {
+              setIsLogin(true);
+              setError("");
+            }}
+            className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+              isLogin
+                ? "bg-white text-sky-700 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+            type="button"
+          >
+            Sign In
+          </button>
+          <button
+            onClick={() => {
+              setIsLogin(false);
+              setError("");
+            }}
+            className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+              !isLogin
+                ? "bg-white text-sky-700 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+            type="button"
+          >
+            Register
+          </button>
+        </div>
+
+        {error && (
+          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            {error}
           </div>
+        )}
 
-          {error && (
-            <div className="bg-red-50/90 border-l-4 border-red-500 p-4 mb-6 rounded-md">
-              <div className="flex">
-                <div className="ml-3 text-sm text-red-700 font-medium">{error}</div>
+        <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
+          {!isLogin && (
+            <section className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">
+                  Personal Details
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Tell us your name so we can personalize your records.
+                </p>
               </div>
-            </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <label className="block">
+                  <span className={labelClassName}>First Name</span>
+                  <input
+                    type="text"
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className={inputClassName}
+                  />
+                </label>
+                <label className="block">
+                  <span className={labelClassName}>Last Name</span>
+                  <input
+                    type="text"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className={inputClassName}
+                  />
+                </label>
+              </div>
+            </section>
           )}
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            {!isLogin && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700">First Name</label>
-                  <div className="mt-1">
-                    <input type="text" required value={firstName} onChange={e => setFirstName(e.target.value)} className="appearance-none block w-full px-3 py-2 border border-slate-200/80 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm bg-white/50" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700">Last Name</label>
-                  <div className="mt-1">
-                    <input type="text" required value={lastName} onChange={e => setLastName(e.target.value)} className="appearance-none block w-full px-3 py-2 border border-slate-200/80 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm bg-white/50" />
-                  </div>
-                </div>
-              </div>
-            )}
-
+          <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
             <div>
-              <label className="block text-sm font-medium text-slate-700">Username</label>
-              <div className="mt-1">
-                <input type="text" required value={username} onChange={e => setUsername(e.target.value)} className="appearance-none block w-full px-3 py-2 border border-slate-200/80 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm bg-white/50" />
-              </div>
+              <p className="text-sm font-semibold text-slate-900">
+                Account Credentials
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Use these details every time you sign in.
+              </p>
             </div>
+
+            <label className="block">
+              <span className={labelClassName}>Username</span>
+              <input
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className={inputClassName}
+              />
+            </label>
 
             {!isLogin && (
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Email address</label>
-                <div className="mt-1">
-                  <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="appearance-none block w-full px-3 py-2 border border-slate-200/80 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm bg-white/50" />
-                </div>
-              </div>
+              <label className="block">
+                <span className={labelClassName}>Email address</span>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inputClassName}
+                />
+              </label>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Password</label>
-              <div className="mt-1">
-                <input type="password" required value={password} onChange={e => setPassword(e.target.value)} className="appearance-none block w-full px-3 py-2 border border-slate-200/80 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm bg-white/50" />
-              </div>
-            </div>
+            <label className="block">
+              <span className={labelClassName}>Password</span>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={inputClassName}
+              />
+            </label>
+          </section>
 
-            <div className="pt-2">
-              <button type="submit" disabled={loading} className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 disabled:opacity-50 transition-all transform hover:-translate-y-0.5">
-                {loading ? 'Processing...' : (isLogin ? 'Sign In Securely' : 'Create Free Account')}
-              </button>
-            </div>
-          </form>
-        </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-slate-900 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition hover:-translate-y-0.5 hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading
+              ? "Processing..."
+              : isLogin
+                ? "Sign In Securely"
+                : "Create Free Account"}
+          </button>
+        </form>
       </div>
     </div>
   );

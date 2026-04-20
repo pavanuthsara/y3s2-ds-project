@@ -1,9 +1,9 @@
 const EMPTY_PROFILE_FORM = {
-  firstName: '',
-  lastName: '',
-  phone: '',
-  address: '',
-  dateOfBirth: '',
+  firstName: "",
+  lastName: "",
+  phone: "",
+  address: "",
+  dateOfBirth: "",
 };
 
 export function createProfileFormState(profile) {
@@ -12,11 +12,11 @@ export function createProfileFormState(profile) {
   }
 
   return {
-    firstName: profile.firstName || '',
-    lastName: profile.lastName || '',
-    phone: profile.phone || '',
-    address: profile.address || '',
-    dateOfBirth: profile.dateOfBirth || '',
+    firstName: profile.firstName || "",
+    lastName: profile.lastName || "",
+    phone: profile.phone || "",
+    address: profile.address || "",
+    dateOfBirth: profile.dateOfBirth || "",
   };
 }
 
@@ -30,15 +30,15 @@ export function PatientProfileForm({
   onSubmit,
 }) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-800">
-          {profile ? 'Edit Your Profile' : 'Create Your Profile'}
+        <h2 className="text-xl font-bold text-slate-900">
+          {profile ? "Edit Your Profile" : "Create Your Profile"}
         </h2>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="mt-1 text-sm text-slate-600">
           {profile
-            ? 'Keep your patient details up to date for reports and appointments.'
-            : 'Create your patient profile to unlock reports and the rest of the patient workspace.'}
+            ? "Keep your patient details up to date for reports and appointments."
+            : "Create your patient profile to unlock reports and the rest of the patient workspace."}
         </p>
       </div>
 
@@ -54,68 +54,92 @@ export function PatientProfileForm({
         </div>
       ) : null}
 
-      <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <label className="block">
-          <span className="block text-sm font-medium text-gray-700 mb-2">First Name</span>
-          <input
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            name="firstName"
-            onChange={onChange}
-            required
-            value={form.firstName}
-          />
-        </label>
+      <form onSubmit={onSubmit} className="space-y-5">
+        <section className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+          <p className="mb-4 text-sm font-semibold text-slate-900">
+            Basic Details
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">
+                First Name
+              </span>
+              <input
+                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                name="firstName"
+                onChange={onChange}
+                required
+                value={form.firstName}
+              />
+            </label>
 
-        <label className="block">
-          <span className="block text-sm font-medium text-gray-700 mb-2">Last Name</span>
-          <input
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            name="lastName"
-            onChange={onChange}
-            required
-            value={form.lastName}
-          />
-        </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">
+                Last Name
+              </span>
+              <input
+                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                name="lastName"
+                onChange={onChange}
+                required
+                value={form.lastName}
+              />
+            </label>
+          </div>
+        </section>
 
-        <label className="block">
-          <span className="block text-sm font-medium text-gray-700 mb-2">Phone</span>
-          <input
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            name="phone"
-            onChange={onChange}
-            value={form.phone}
-          />
-        </label>
+        <section className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
+          <p className="mb-4 text-sm font-semibold text-slate-900">
+            Contact And Identity
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">
+                Phone
+              </span>
+              <input
+                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                name="phone"
+                onChange={onChange}
+                value={form.phone}
+              />
+            </label>
 
-        <label className="block">
-          <span className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</span>
-          <input
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            name="dateOfBirth"
-            onChange={onChange}
-            type="date"
-            value={form.dateOfBirth}
-          />
-        </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">
+                Date of Birth
+              </span>
+              <input
+                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                name="dateOfBirth"
+                onChange={onChange}
+                type="date"
+                value={form.dateOfBirth}
+              />
+            </label>
 
-        <label className="block md:col-span-2">
-          <span className="block text-sm font-medium text-gray-700 mb-2">Address</span>
-          <textarea
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            name="address"
-            onChange={onChange}
-            rows={3}
-            value={form.address}
-          />
-        </label>
+            <label className="block sm:col-span-2">
+              <span className="mb-1.5 block text-sm font-medium text-slate-700">
+                Address
+              </span>
+              <textarea
+                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                name="address"
+                onChange={onChange}
+                rows={3}
+                value={form.address}
+              />
+            </label>
+          </div>
+        </section>
 
-        <div className="md:col-span-2">
+        <div>
           <button
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+            className="w-full rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300 disabled:cursor-not-allowed disabled:bg-slate-400 sm:w-auto"
             disabled={busy}
             type="submit"
           >
-            {busy ? 'Saving...' : profile ? 'Save Profile' : 'Create Profile'}
+            {busy ? "Saving..." : profile ? "Save Profile" : "Create Profile"}
           </button>
         </div>
       </form>
