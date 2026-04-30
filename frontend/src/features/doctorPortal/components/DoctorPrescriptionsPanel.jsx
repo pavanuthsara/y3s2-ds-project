@@ -1,18 +1,19 @@
-import { useState } from 'react';
-import { doctorPrescriptionAPI } from '../services/api';
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { doctorPrescriptionAPI } from "../services/api";
 
 const EMPTY_FORM = {
-  patientId: '',
-  appointmentId: '',
-  medication: '',
-  dosage: '',
-  instructions: '',
-  notes: '',
+  medication: "",
+  dosage: "",
+  instructions: "",
+  notes: "",
 };
+
+const EMPTY_EDIT_STATE = null;
 
 const formatDateTime = (value) => {
   if (!value) {
-    return 'Not available';
+    return "Not available";
   }
 
   const date = new Date(value);
@@ -23,71 +24,173 @@ const formatDateTime = (value) => {
   return date.toLocaleString();
 };
 
-export default function DoctorPrescriptionsPanel() {
+export default function DoctorPrescriptionsPanel({ session }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [createBusy, setCreateBusy] = useState(false);
-  const [lookupBusy, setLookupBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [patientLookup, setPatientLookup] = useState('');
+  const [editBusy, setEditBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [prescriptions, setPrescriptions] = useState([]);
+  const [editingPrescription, setEditingPrescription] =
+    useState(EMPTY_EDIT_STATE);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const selectedAppointment = {
+    appointmentId: searchParams.get("appointmentId") || "",
+    patientId: searchParams.get("patientId") || "",
+  };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
   };
 
+  const clearSelectedAppointment = () => {
+    navigate("/doctor/prescriptions");
+  };
+
+  const startEdit = (prescription) => {
+    setMessage("");
+    setError("");
+    setEditingPrescription(prescription);
+    setForm({
+      medication: prescription.medication || "",
+      dosage: prescription.dosage || "",
+      instructions: prescription.instructions || "",
+      notes: prescription.notes || "",
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingPrescription(EMPTY_EDIT_STATE);
+    setForm(EMPTY_FORM);
+    setMessage("");
+    setError("");
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPrescriptions = async () => {
+      if (!session?.username) {
+        setPrescriptions([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError("");
+
+      try {
+        const data =
+          await doctorPrescriptionAPI.getPrescriptionsByDoctorUsername(
+            session.username,
+          );
+        if (!cancelled) {
+          setPrescriptions(Array.isArray(data) ? data : []);
+        }
+      } catch (nextError) {
+        if (!cancelled) {
+          setError(nextError.message || "Failed to load prescriptions");
+          setPrescriptions([]);
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (!cancelled) {
+        setLoading(false);
+      }
+    };
+
+    loadPrescriptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.username]);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (
+      !editingPrescription &&
+      (!selectedAppointment.appointmentId || !selectedAppointment.patientId)
+    ) {
+      setError(
+        "Select an appointment from the appointments tab to create a prescription.",
+      );
+      return;
+    }
+
     setCreateBusy(true);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
 
     try {
       const payload = {
-        patientId: form.patientId.trim(),
-        appointmentId: form.appointmentId.trim(),
         medication: form.medication.trim(),
         dosage: form.dosage.trim(),
         instructions: form.instructions.trim(),
         notes: form.notes.trim() || null,
       };
 
-      const created = await doctorPrescriptionAPI.createPrescription(payload);
-      setMessage('Prescription created successfully.');
-      setForm(EMPTY_FORM);
+      if (editingPrescription) {
+        setEditBusy(true);
+        const updated = await doctorPrescriptionAPI.updatePrescription(
+          editingPrescription.id,
+          payload,
+        );
+        setMessage("Prescription updated successfully.");
+        setPrescriptions((current) =>
+          current.map((item) => (item.id === updated.id ? updated : item)),
+        );
+        setEditingPrescription(EMPTY_EDIT_STATE);
+        setForm(EMPTY_FORM);
+      } else {
+        const createPayload = {
+          ...payload,
+          patientId: selectedAppointment.patientId.trim(),
+          appointmentId: selectedAppointment.appointmentId.trim(),
+        };
 
-      if (payload.patientId) {
-        setPatientLookup(payload.patientId);
-        const nextPrescriptions = await doctorPrescriptionAPI.getPrescriptionsByPatientId(payload.patientId);
-        setPrescriptions(Array.isArray(nextPrescriptions) ? nextPrescriptions : created ? [created] : []);
+        const created =
+          await doctorPrescriptionAPI.createPrescription(createPayload);
+        setMessage("Prescription created successfully.");
+        setForm(EMPTY_FORM);
+        setPrescriptions((current) => [
+          created,
+          ...current.filter((item) => item.id !== created.id),
+        ]);
       }
     } catch (nextError) {
-      setError(nextError.message || 'Failed to create prescription');
+      setError(nextError.message || "Failed to save prescription");
     } finally {
       setCreateBusy(false);
+      setEditBusy(false);
     }
   };
 
-  const handleLookup = async (event) => {
-    event.preventDefault();
-    if (!patientLookup.trim()) {
-      setError('Enter a patient id to load prescriptions.');
+  const handleDelete = async (prescription) => {
+    if (!window.confirm("Delete this prescription?")) {
       return;
     }
 
-    setLookupBusy(true);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
 
     try {
-      const data = await doctorPrescriptionAPI.getPrescriptionsByPatientId(patientLookup.trim());
-      setPrescriptions(Array.isArray(data) ? data : []);
+      await doctorPrescriptionAPI.deletePrescription(prescription.id);
+      setPrescriptions((current) =>
+        current.filter((item) => item.id !== prescription.id),
+      );
+      if (editingPrescription?.id === prescription.id) {
+        cancelEdit();
+      }
+      setMessage("Prescription deleted successfully.");
     } catch (nextError) {
-      setError(nextError.message || 'Failed to load prescriptions');
-      setPrescriptions([]);
-    } finally {
-      setLookupBusy(false);
+      setError(nextError.message || "Failed to delete prescription");
     }
   };
 
@@ -95,12 +198,76 @@ export default function DoctorPrescriptionsPanel() {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
       <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Create Prescription</p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-900">Issue medication instructions for a patient</h2>
+          <p className="text-sm uppercase tracking-[0.2em] text-slate-500">
+            {editingPrescription ? "Edit Prescription" : "Create Prescription"}
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+            {editingPrescription
+              ? "Update an existing prescription"
+              : "Issue medication instructions for an appointment"}
+          </h2>
           <p className="mt-2 text-sm text-slate-600">
-            This writes directly to the doctor-service prescription module through the API gateway.
+            {editingPrescription
+              ? "Edit the medication details for this prescription. Appointment and patient links stay unchanged."
+              : "Appointment and patient details are pulled from the selected appointment so you only enter the medication details."}
           </p>
         </div>
+
+        {!editingPrescription ? (
+          <div className="mb-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Selected appointment
+                </p>
+                <div className="mt-3 grid gap-3 text-sm md:grid-cols-2">
+                  <div>
+                    <p className="text-slate-500">Appointment ID</p>
+                    <p className="break-all font-medium text-slate-900">
+                      {selectedAppointment.appointmentId ||
+                        "Choose an appointment from the Appointments tab"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500">Patient ID</p>
+                    <p className="break-all font-medium text-slate-900">
+                      {selectedAppointment.patientId ||
+                        "Choose an appointment from the Appointments tab"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              {selectedAppointment.appointmentId ? (
+                <button
+                  className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white"
+                  onClick={clearSelectedAppointment}
+                  type="button"
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            Editing prescription for appointment{" "}
+            <span className="font-semibold">
+              {editingPrescription.appointmentId}
+            </span>{" "}
+            and patient{" "}
+            <span className="font-semibold">
+              {editingPrescription.patientId}
+            </span>
+            .
+            <button
+              className="ml-3 inline-flex rounded-full border border-amber-300 px-3 py-1 text-xs font-semibold text-amber-900 transition hover:bg-amber-100"
+              onClick={cancelEdit}
+              type="button"
+            >
+              Cancel edit
+            </button>
+          </div>
+        )}
 
         {error ? (
           <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -116,39 +283,10 @@ export default function DoctorPrescriptionsPanel() {
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="patientId">
-              Patient ID
-            </label>
-            <input
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
-              id="patientId"
-              name="patientId"
-              onChange={handleChange}
-              placeholder="testpatient"
-              required
-              type="text"
-              value={form.patientId}
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="appointmentId">
-              Appointment ID
-            </label>
-            <input
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
-              id="appointmentId"
-              name="appointmentId"
-              onChange={handleChange}
-              placeholder="UUID from appointment booking"
-              required
-              type="text"
-              value={form.appointmentId}
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="medication">
+            <label
+              className="mb-2 block text-sm font-medium text-slate-700"
+              htmlFor="medication"
+            >
               Medication
             </label>
             <input
@@ -164,7 +302,10 @@ export default function DoctorPrescriptionsPanel() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="dosage">
+            <label
+              className="mb-2 block text-sm font-medium text-slate-700"
+              htmlFor="dosage"
+            >
               Dosage
             </label>
             <input
@@ -180,7 +321,10 @@ export default function DoctorPrescriptionsPanel() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="instructions">
+            <label
+              className="mb-2 block text-sm font-medium text-slate-700"
+              htmlFor="instructions"
+            >
               Instructions
             </label>
             <textarea
@@ -195,7 +339,10 @@ export default function DoctorPrescriptionsPanel() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="notes">
+            <label
+              className="mb-2 block text-sm font-medium text-slate-700"
+              htmlFor="notes"
+            >
               Notes
             </label>
             <textarea
@@ -210,52 +357,65 @@ export default function DoctorPrescriptionsPanel() {
 
           <button
             className="inline-flex rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={createBusy}
+            disabled={
+              createBusy ||
+              editBusy ||
+              (!editingPrescription &&
+                (!selectedAppointment.appointmentId ||
+                  !selectedAppointment.patientId))
+            }
             type="submit"
           >
-            {createBusy ? 'Saving...' : 'Create Prescription'}
+            {createBusy || editBusy
+              ? "Saving..."
+              : editingPrescription
+                ? "Save Changes"
+                : "Create Prescription"}
           </button>
+          {editingPrescription ? (
+            <button
+              className="ml-3 inline-flex rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              onClick={cancelEdit}
+              type="button"
+            >
+              Cancel
+            </button>
+          ) : null}
         </form>
       </section>
 
       <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Patient Lookup</p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-900">View prescriptions by patient id</h2>
+          <p className="text-sm uppercase tracking-[0.2em] text-slate-500">
+            Prescription History
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+            All prescriptions issued by you
+          </h2>
         </div>
 
-        <form className="mb-6 flex flex-col gap-3 sm:flex-row" onSubmit={handleLookup}>
-          <input
-            className="min-w-0 flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
-            onChange={(event) => setPatientLookup(event.target.value)}
-            placeholder="Enter patient id"
-            type="text"
-            value={patientLookup}
-          />
-          <button
-            className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={lookupBusy}
-            type="submit"
-          >
-            {lookupBusy ? 'Loading...' : 'Load Prescriptions'}
-          </button>
-        </form>
-
-        {prescriptions.length === 0 ? (
+        {loading ? (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-            No prescriptions loaded yet.
+            Loading prescription history...
+          </div>
+        ) : prescriptions.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+            No prescriptions have been issued by you yet.
           </div>
         ) : (
           <div className="space-y-4">
             {prescriptions.map((prescription, index) => (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4" key={prescription.id || index}>
+              <div
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                key={prescription.id || index}
+              >
                 <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-slate-900">
-                      {prescription.medication || 'Medication'}
+                      {prescription.medication || "Medication"}
                     </h3>
                     <p className="text-sm text-slate-600">
-                      Dosage: {prescription.dosage || 'Not specified'}
+                      Dosage: {prescription.dosage || "Not specified"}
                     </p>
                   </div>
                   <p className="text-sm text-slate-500">
@@ -266,23 +426,48 @@ export default function DoctorPrescriptionsPanel() {
                 <div className="mt-4 grid gap-4 text-sm md:grid-cols-2">
                   <div>
                     <p className="text-slate-500">Patient ID</p>
-                    <p className="font-medium text-slate-800">{prescription.patientId || 'Not available'}</p>
+                    <p className="font-medium text-slate-800">
+                      {prescription.patientId || "Not available"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-slate-500">Appointment ID</p>
-                    <p className="break-all font-medium text-slate-800">{prescription.appointmentId || 'Not available'}</p>
+                    <p className="break-all font-medium text-slate-800">
+                      {prescription.appointmentId || "Not available"}
+                    </p>
                   </div>
                 </div>
 
                 <div className="mt-4">
                   <p className="text-slate-500 text-sm">Instructions</p>
-                  <p className="mt-1 text-sm text-slate-800">{prescription.instructions || 'No instructions provided.'}</p>
+                  <p className="mt-1 text-sm text-slate-800">
+                    {prescription.instructions || "No instructions provided."}
+                  </p>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <button
+                    className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-white"
+                    onClick={() => startEdit(prescription)}
+                    type="button"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="rounded-full border border-rose-300 px-4 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+                    onClick={() => handleDelete(prescription)}
+                    type="button"
+                  >
+                    Delete
+                  </button>
                 </div>
 
                 {prescription.notes ? (
                   <div className="mt-4">
                     <p className="text-slate-500 text-sm">Notes</p>
-                    <p className="mt-1 text-sm text-slate-800">{prescription.notes}</p>
+                    <p className="mt-1 text-sm text-slate-800">
+                      {prescription.notes}
+                    </p>
                   </div>
                 ) : null}
               </div>

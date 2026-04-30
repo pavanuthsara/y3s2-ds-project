@@ -7,6 +7,6 @@ RUN mvn package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /app/target/*.jar payment-service.jar
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8086
-ENTRYPOINT ["java", "-jar", "payment-service.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

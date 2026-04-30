@@ -53,7 +53,7 @@ public class TelemedicineSessionService {
         }
 
         int ttl = agoraTokenService.getDefaultTtlSeconds();
-        String token = agoraTokenService.generateSessionToken(session.getRoomName(), session.getSessionId(), ttl);
+        String token = agoraTokenService.generateSessionToken(session.getRoomName(), ttl);
 
         return SessionTokenResponse.builder()
                 .sessionId(session.getSessionId())

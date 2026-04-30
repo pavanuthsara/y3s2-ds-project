@@ -7,5 +7,9 @@ import java.util.List;
 import java.util.UUID;
 
 public interface PrescriptionRepository extends JpaRepository<Prescription, UUID> {
-    List<Prescription> findByPatientId(String patientId);
+    List<Prescription> findByPatientIdOrderByIssuedAtDesc(String patientId);
+
+    List<Prescription> findByDoctorUsernameOrderByIssuedAtDesc(String doctorUsername);
+
+	java.util.Optional<Prescription> findByIdAndDoctorUsername(UUID id, String doctorUsername);
 }
