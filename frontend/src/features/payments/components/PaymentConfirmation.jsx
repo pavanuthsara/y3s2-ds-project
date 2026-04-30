@@ -71,12 +71,7 @@ export const PaymentConfirmation = ({
 
       {/* Transaction Details */}
       <div className="space-y-4 mb-6 p-4 bg-gray-50 rounded-lg">
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600">Transaction ID:</span>
-          <span className="font-mono text-sm font-semibold text-gray-800">
-            {displayTransaction.transactionId?.substring(0, 8)}...
-          </span>
-        </div>
+
 
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Status:</span>
@@ -104,14 +99,7 @@ export const PaymentConfirmation = ({
           </span>
         </div>
 
-        {displayTransaction.appointmentId && (
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Appointment ID:</span>
-            <span className="font-mono text-sm text-gray-800">
-              {displayTransaction.appointmentId?.substring(0, 8)}...
-            </span>
-          </div>
-        )}
+
       </div>
 
       {/* Action Buttons */}

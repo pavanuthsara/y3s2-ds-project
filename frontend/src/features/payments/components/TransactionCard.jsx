@@ -39,7 +39,7 @@ export const TransactionCard = ({
       <div className="flex justify-between items-start mb-4">
         <div>
           <h3 className="font-semibold text-gray-800 text-sm">
-            Transaction #{displayId?.substring(0, 8)}...
+            Payment Receipt
           </h3>
           <p className="text-gray-500 text-xs mt-1">
             {transactionDate.toLocaleString('en-US', {
@@ -63,14 +63,7 @@ export const TransactionCard = ({
           </span>
         </div>
 
-        {appointmentId && (
-          <div className="flex justify-between">
-            <span className="text-gray-600">Appointment ID:</span>
-            <span className="font-mono text-xs text-gray-800">
-              {appointmentId?.substring(0, 12)}...
-            </span>
-          </div>
-        )}
+
 
         <div className="flex justify-between">
           <span className="text-gray-600">Payment Gateway:</span>

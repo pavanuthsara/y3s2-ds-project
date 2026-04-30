@@ -71,19 +71,7 @@ export const PaymentPage = ({ patientId }) => {
 
             {/* Modal Body */}
             <div className="p-6 space-y-4">
-              <div>
-                <p className="text-gray-600 text-sm">Transaction ID</p>
-                <p className="font-mono text-gray-800 font-semibold">
-                  {selectedTransaction.transactionId || selectedTransaction.id}
-                </p>
-              </div>
 
-              <div>
-                <p className="text-gray-600 text-sm">Appointment ID</p>
-                <p className="font-mono text-gray-800 font-semibold">
-                  {selectedTransaction.appointmentId || 'N/A'}
-                </p>
-              </div>
 
               <div>
                 <p className="text-gray-600 text-sm">Amount</p>

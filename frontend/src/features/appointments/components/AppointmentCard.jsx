@@ -77,10 +77,7 @@ const AppointmentCard = ({
       </div>
 
       <div className="appointment-card-body">
-        <div className="appointment-detail">
-          <span className="label">Appointment ID:</span>
-          <span className="value">{appointment.appointmentId}</span>
-        </div>
+
 
         <div className="appointment-detail">
           <span className="label">Mode:</span>
