@@ -1,11 +1,12 @@
+/* Doctor Availability page – themed to match brand palette */
 .doctor-page {
   display: grid;
   gap: 1rem;
 }
 
 .doctor-hero {
-  background: linear-gradient(145deg, #005f73 0%, #0a9396 100%);
-  color: #fefdf9;
+  background: linear-gradient(135deg, oklch(0.22 0.06 245) 0%, oklch(0.45 0.12 210) 60%, oklch(0.55 0.13 200) 100%);
+  color: oklch(0.99 0.005 200);
   padding: 1.2rem;
   border-radius: 1rem;
   box-shadow: var(--shadow);
@@ -20,6 +21,7 @@
   margin: 0.6rem 0 0;
   line-height: 1.5;
   max-width: 70ch;
+  opacity: 0.85;
 }
 
 .panel {
@@ -72,6 +74,14 @@ select {
   border-radius: 0.55rem;
   padding: 0.55rem 0.6rem;
   background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus,
+select:focus {
+  border-color: oklch(0.55 0.13 200);
+  box-shadow: 0 0 0 3px oklch(0.55 0.13 200 / 0.15);
 }
 
 .checkbox-row {
@@ -92,25 +102,26 @@ select {
   border-radius: 0.6rem;
   padding: 0.55rem 0.85rem;
   cursor: pointer;
+  transition: opacity 0.2s, background 0.2s;
 }
 
 .btn-primary {
-  background: var(--brand);
-  color: #fff;
+  background: oklch(0.22 0.06 245);    /* deep navy */
+  color: oklch(0.99 0.005 200);
 }
 
 .btn-primary:hover {
-  background: #084c5b;
+  background: oklch(0.30 0.07 245);
 }
 
 .btn-danger {
-  background: #fef3f2;
-  color: var(--danger);
-  border: 1px solid #fcd3cf;
+  background: oklch(0.97 0.02 25);
+  color: oklch(0.6 0.22 25);
+  border: 1px solid oklch(0.88 0.08 25);
 }
 
 .btn-ghost {
-  background: #f2f7f9;
+  background: oklch(0.95 0.012 220);
   color: var(--ink);
   border: 1px solid var(--border);
 }
@@ -118,7 +129,7 @@ select {
 .btn-primary:disabled,
 .btn-danger:disabled,
 .btn-ghost:disabled {
-  opacity: 0.65;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
@@ -129,15 +140,15 @@ select {
 }
 
 .notice.error {
-  background: #fff0f0;
-  border: 1px solid #ffc5c5;
-  color: #9b1c1c;
+  background: oklch(0.97 0.02 25);
+  border: 1px solid oklch(0.88 0.08 25);
+  color: oklch(0.45 0.18 25);
 }
 
 .notice.success {
-  background: #ebfbf2;
-  border: 1px solid #c1efd7;
-  color: #166534;
+  background: oklch(0.96 0.05 165);
+  border: 1px solid oklch(0.85 0.1 165);
+  color: oklch(0.35 0.1 165);
 }
 
 .doctor-grid {
@@ -177,13 +188,13 @@ select {
 }
 
 .tag-active {
-  background: #dcfce7;
-  color: #166534;
+  background: oklch(0.93 0.08 165);
+  color: oklch(0.30 0.1 165);
 }
 
 .tag-inactive {
-  background: #ffedd5;
-  color: #9a3412;
+  background: oklch(0.95 0.04 55);
+  color: oklch(0.45 0.12 55);
 }
 
 .empty-state {

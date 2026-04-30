@@ -152,7 +152,7 @@ export function PatientPortal() {
   const activeNavItem = NAV_ITEMS.find((n) => n.id === activeTab);
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] bg-slate-50">
+    <div className="flex min-h-[calc(100vh-4rem)] bg-[oklch(0.99_0.005_200)]">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -170,7 +170,7 @@ export function PatientPortal() {
         {/* User header */}
         <div className="p-5 border-b border-slate-100">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm flex-shrink-0">
+            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center text-white font-bold text-lg shadow-sm flex-shrink-0">
               {displayName.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
@@ -178,8 +178,8 @@ export function PatientPortal() {
               <p className="text-xs text-slate-400 truncate">{session.email}</p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100">
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-teal-50 text-teal-700 border border-teal-100">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
             Patient
           </span>
         </div>
@@ -199,7 +199,7 @@ export function PatientPortal() {
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left
                     ${activeTab === id
-                      ? "bg-sky-50 text-sky-700 shadow-sm border border-sky-100"
+                      ? "bg-teal-50 text-teal-700 shadow-sm border border-teal-100"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                 >
@@ -244,7 +244,7 @@ export function PatientPortal() {
           {/* Page heading */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-              {activeNavItem && <activeNavItem.icon className="w-7 h-7 text-slate-500" />}
+              {activeNavItem && <activeNavItem.icon className="w-7 h-7 text-teal-500" />}
               {activeNavItem?.label}
             </h1>
             <p className="text-sm text-slate-500 mt-1">
