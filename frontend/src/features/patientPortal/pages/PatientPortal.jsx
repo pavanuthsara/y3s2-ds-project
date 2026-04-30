@@ -164,7 +164,7 @@ export function PatientPortal() {
       {/* ── Sidebar ── */}
       <aside
         className={`fixed top-0 left-0 z-30 h-full w-64 bg-white border-r border-slate-200 shadow-xl flex flex-col transition-transform duration-300
-          lg:static lg:translate-x-0 lg:shadow-sm lg:z-auto
+          lg:sticky lg:top-4 lg:self-start lg:h-[calc(100vh-2rem)] lg:translate-x-0 lg:shadow-sm lg:z-auto
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* User header */}
