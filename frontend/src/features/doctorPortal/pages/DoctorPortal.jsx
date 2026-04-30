@@ -11,12 +11,20 @@ import {
   getStoredDoctorSession,
   isDoctorLoggedIn,
 } from "../services/api";
+import {
+  UserIcon,
+  ClockIcon,
+  CalendarDaysIcon,
+  DocumentTextIcon,
+  ArrowRightOnRectangleIcon,
+  Bars3Icon
+} from "@heroicons/react/24/outline";
 
 const NAV_ITEMS = [
-  { id: "profile",       label: "My Profile",     icon: "👨‍⚕️" },
-  { id: "availability",  label: "Availability",   icon: "🗓️" },
-  { id: "appointments",  label: "Appointments",   icon: "📅" },
-  { id: "prescriptions", label: "Prescriptions",  icon: "💊" },
+  { id: "profile",       label: "My Profile",     icon: UserIcon },
+  { id: "availability",  label: "Availability",   icon: ClockIcon },
+  { id: "appointments",  label: "Appointments",   icon: CalendarDaysIcon },
+  { id: "prescriptions", label: "Prescriptions",  icon: DocumentTextIcon },
 ];
 
 function DoctorPortal({ initialTab = "profile" }) {
@@ -220,7 +228,7 @@ function DoctorPortal({ initialTab = "profile" }) {
             Doctor Portal
           </p>
           <ul className="space-y-0.5">
-            {NAV_ITEMS.map(({ id, label, icon }) => (
+            {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
               <li key={id}>
                 <button
                   onClick={() => {
@@ -233,7 +241,7 @@ function DoctorPortal({ initialTab = "profile" }) {
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`}
                 >
-                  <span className="text-base w-5 text-center">{icon}</span>
+                  <Icon className="w-5 h-5 flex-shrink-0" />
                   {label}
                 </button>
               </li>
@@ -247,7 +255,7 @@ function DoctorPortal({ initialTab = "profile" }) {
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all"
           >
-            <span className="text-base w-5 text-center">🚪</span>
+            <ArrowRightOnRectangleIcon className="w-5 h-5 flex-shrink-0" />
             Logout
           </button>
         </div>
@@ -262,20 +270,20 @@ function DoctorPortal({ initialTab = "profile" }) {
             className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
             aria-label="Open menu"
           >
-            <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <Bars3Icon className="w-5 h-5 text-slate-600" />
           </button>
-          <span className="font-semibold text-slate-800 text-sm">
-            {activeNavItem?.icon} {activeNavItem?.label ?? "Doctor Portal"}
+          <span className="font-semibold text-slate-800 text-sm flex items-center gap-2">
+            {activeNavItem && <activeNavItem.icon className="w-5 h-5 text-slate-500" />}
+            {activeNavItem?.label ?? "Doctor Portal"}
           </span>
         </div>
 
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
           {/* Page heading */}
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-slate-900">
-              {activeNavItem?.icon} {activeNavItem?.label}
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              {activeNavItem && <activeNavItem.icon className="w-7 h-7 text-slate-500" />}
+              {activeNavItem?.label}
             </h1>
             <p className="text-sm text-slate-500 mt-1">
               Welcome back,{" "}
