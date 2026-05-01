@@ -253,7 +253,7 @@ services:
       - "8087:8087"
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-1.5-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
       SYMPTOM_MOCK_ENABLED: ${SYMPTOM_MOCK_ENABLED:-true}
     networks:
       - dsproject-network
