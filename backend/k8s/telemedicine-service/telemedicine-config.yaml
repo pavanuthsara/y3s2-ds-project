@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telemedicine-config
+  namespace: default
+data:
+  APPOINTMENT_SERVICE_BASE_URL: http://appointment-service:8085/api/appointments
+  AGORA_TOKEN_TTL_SECONDS: "3600"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: telemedicine-secret
+  namespace: default
+type: Opaque
+data:
+  # Values are base64 encoded
+  AGORA_APP_ID: YTA2ZDE3OTljZWQ3NDA3Mjg5MDNlYTlmODFmNzYyNjc= # a06d1799ced740728903ea9f81f76267
+  AGORA_APP_CERTIFICATE: M2Y5MjgyNzAzOTBhNGRkOTk4NDk4MzRhMWJkMWM2MWE= # 3f928270390a4dd99849834a1bd1c61a

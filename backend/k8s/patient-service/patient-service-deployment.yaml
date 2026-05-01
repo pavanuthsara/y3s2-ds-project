@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: patient-service
+  labels:
+    app: patient-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: patient-service
+  template:
+    metadata:
+      labels:
+        app: patient-service
+    spec:
+      containers:
+      - name: patient-service
+        image: patient-service:latest
+        ports:
+        - containerPort: 8082
+        env:
+        - name: SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: patient-config
+              key: SERVER_PORT
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://patient-db-service:5432/patient_service_db
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: patient-config
+              key: DB_USERNAME
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: patient-secret
+              key: DB_PASSWORD
+        - name: APP_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: patient-secret
+              key: APP_JWT_SECRET
+        - name: APPOINTMENT_SERVICE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: patient-config
+              key: APPOINTMENT_SERVICE_BASE_URL
+        - name: PRESCRIPTION_SERVICE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: patient-config
+              key: PRESCRIPTION_SERVICE_BASE_URL
+        - name: AWS_REGION
+          valueFrom:
+            configMapKeyRef:
+              name: patient-config
+              key: AWS_REGION
+        - name: AWS_S3_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: patient-config
+              key: AWS_S3_BUCKET
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: patient-secret
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: patient-secret
+              key: AWS_SECRET_ACCESS_KEY
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8082
+          initialDelaySeconds: 40
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8082
+          initialDelaySeconds: 30
+          periodSeconds: 10

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: doctor-config
+  namespace: default
+data:
+  DB_HOST: doctor-db-service
+  DB_PORT: "5432"
+  DB_NAME: doctor_service_db
+  DB_USERNAME: postgres
+  SERVER_PORT: "8083"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: doctor-secret
+  namespace: default
+type: Opaque
+data:
+  # Values are base64 encoded
+  DB_PASSWORD: cG9zdGdyZXM= # postgres

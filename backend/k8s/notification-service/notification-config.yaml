@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: notification-config
+  namespace: default
+data:
+  DB_HOST: notification-db-service
+  DB_PORT: "5432"
+  DB_NAME: notification_service_db
+  DB_USERNAME: postgres
+  MAIL_HOST: smtp.gmail.com
+  MAIL_PORT: "587"
+  MAIL_FROM: no-reply@ds-project.local
+  PATIENT_SERVICE_URL: http://patient-service:8082/api/patients
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: notification-secret
+  namespace: default
+type: Opaque
+data:
+  # Values are base64 encoded
+  DB_PASSWORD: cG9zdGdyZXM= # postgres
+  JWT_SECRET: bXlTZWNyZXRLZXlGb3JKd3RUb2tlbkdlbmVyYXRpb25BbmRWYWxpZGF0aW9uUHVycG9zZXNPbmx5MTIzNDU2Nzg5
+  MAIL_USERNAME: "" # Provide base64 encoded username here
+  MAIL_PASSWORD: "" # Provide base64 encoded password here

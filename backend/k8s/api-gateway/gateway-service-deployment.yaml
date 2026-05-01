@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  labels:
+    app: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+      - name: api-gateway
+        image: api-gateway:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: AUTH_SERVICE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: api-gateway-config
+              key: AUTH_SERVICE_BASE_URL
+        - name: PATIENT_SERVICE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: api-gateway-config
+              key: PATIENT_SERVICE_BASE_URL
+        - name: DOCTOR_SERVICE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: api-gateway-config
+              key: DOCTOR_SERVICE_BASE_URL
+        - name: SYMPTOM_CHECKER_SERVICE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: api-gateway-config
+              key: SYMPTOM_CHECKER_SERVICE_BASE_URL
+        - name: APPOINTMENT_SERVICE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: api-gateway-config
+              key: APPOINTMENT_SERVICE_BASE_URL
+        - name: TELEMEDICINE_SERVICE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: api-gateway-config
+              key: TELEMEDICINE_SERVICE_BASE_URL
+        - name: PAYMENT_SERVICE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: api-gateway-config
+              key: PAYMENT_SERVICE_BASE_URL
+        - name: APP_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: api-gateway-secret
+              key: APP_JWT_SECRET
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 40
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10

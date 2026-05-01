@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: appointment-config
+  namespace: default
+data:
+  DB_HOST: appointment-db-service
+  DB_PORT: "5432"
+  DB_NAME: appointment_service_db
+  DB_USERNAME: postgres
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: appointment-secret
+  namespace: default
+type: Opaque
+data:
+  # Values are base64 encoded
+  DB_PASSWORD: cG9zdGdyZXM= # postgres

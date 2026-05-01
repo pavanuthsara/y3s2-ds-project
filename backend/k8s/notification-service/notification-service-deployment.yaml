@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  labels:
+    app: notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+      - name: notification-service
+        image: notification-service:latest
+        ports:
+        - containerPort: 8088
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: DB_NAME
+        - name: DB_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: notification-secret
+              key: DB_PASSWORD
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: notification-secret
+              key: JWT_SECRET
+        - name: MAIL_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: MAIL_HOST
+        - name: MAIL_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: MAIL_PORT
+        - name: MAIL_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: notification-secret
+              key: MAIL_USERNAME
+        - name: MAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: notification-secret
+              key: MAIL_PASSWORD
+        - name: MAIL_FROM
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: MAIL_FROM
+        - name: PATIENT_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: PATIENT_SERVICE_URL
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8088
+          initialDelaySeconds: 40
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8088
+          initialDelaySeconds: 30
+          periodSeconds: 10

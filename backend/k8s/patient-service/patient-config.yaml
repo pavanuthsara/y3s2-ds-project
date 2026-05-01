@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: patient-config
+  namespace: default
+data:
+  DB_HOST: patient-db-service
+  DB_PORT: "5432"
+  DB_NAME: patient_service_db
+  DB_USERNAME: postgres
+  SERVER_PORT: "8082"
+  APPOINTMENT_SERVICE_BASE_URL: http://appointment-service:8085/api/appointments
+  PRESCRIPTION_SERVICE_BASE_URL: http://doctor-service:8083/api/prescriptions
+  AWS_REGION: eu-north-1
+  AWS_S3_BUCKET: patient-reports-damith-001
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: patient-secret
+  namespace: default
+type: Opaque
+data:
+  # Values are base64 encoded
+  DB_PASSWORD: cG9zdGdyZXM= # postgres
+  APP_JWT_SECRET: bXlTZWNyZXRLZXlGb3JKd3RUb2tlbkdlbmVyYXRpb25BbmRWYWxpZGF0aW9uUHVycG9zZXNPbmx5MTIzNDU2Nzg5
+  AWS_ACCESS_KEY_ID: QUtJQVhQUDRENTZFO0NRTDZaQUU1 # base64 encoded
+  AWS_SECRET_ACCESS_KEY: UkRQU2dUSEREdlJGZHg2SHNXM0ZsbFVZdDB4eWtscmtZM2swRzZlSw== # base64 encoded

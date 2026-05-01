@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-symptom-config
+  namespace: default
+data:
+  GEMINI_MODEL: gemini-1.5-flash
+  SYMPTOM_MOCK_ENABLED: "true"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ai-symptom-secret
+  namespace: default
+type: Opaque
+data:
+  # Values are base64 encoded
+  GEMINI_API_KEY: "" # Provide base64 encoded key here
