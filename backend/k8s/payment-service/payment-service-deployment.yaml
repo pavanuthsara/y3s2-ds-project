@@ -17,6 +17,7 @@ spec:
       containers:
       - name: payment-service
         image: payment-service:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8086
         env:
@@ -74,11 +75,11 @@ spec:
           httpGet:
             path: /actuator/health
             port: 8086
-          initialDelaySeconds: 40
+          initialDelaySeconds: 120
           periodSeconds: 15
         readinessProbe:
           httpGet:
             path: /actuator/health
             port: 8086
-          initialDelaySeconds: 30
+          initialDelaySeconds: 120
           periodSeconds: 10

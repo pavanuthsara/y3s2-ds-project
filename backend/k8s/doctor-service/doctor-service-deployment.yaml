@@ -17,6 +17,7 @@ spec:
       containers:
       - name: doctor-service
         image: doctor-service:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8083
         env:
@@ -41,11 +42,11 @@ spec:
           httpGet:
             path: /actuator/health
             port: 8083
-          initialDelaySeconds: 40
+          initialDelaySeconds: 120
           periodSeconds: 15
         readinessProbe:
           httpGet:
             path: /actuator/health
             port: 8083
-          initialDelaySeconds: 30
+          initialDelaySeconds: 120
           periodSeconds: 10
