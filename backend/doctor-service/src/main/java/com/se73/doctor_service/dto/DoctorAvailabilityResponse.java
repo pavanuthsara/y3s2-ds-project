@@ -10,13 +10,15 @@ public class DoctorAvailabilityResponse {
     private final DayOfWeek dayOfWeek;
     private final LocalTime startTime;
     private final LocalTime endTime;
+    private final boolean active;
 
-    public DoctorAvailabilityResponse(UUID id, String doctorUsername, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
+    public DoctorAvailabilityResponse(UUID id, String doctorUsername, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime, boolean active) {
         this.id = id;
         this.doctorUsername = doctorUsername;
         this.dayOfWeek = dayOfWeek;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.active = active;
     }
 
     public UUID getId() {
@@ -37,5 +39,9 @@ public class DoctorAvailabilityResponse {
 
     public LocalTime getEndTime() {
         return endTime;
+    }
+
+    public boolean isActive() {
+        return active;
     }
 }
