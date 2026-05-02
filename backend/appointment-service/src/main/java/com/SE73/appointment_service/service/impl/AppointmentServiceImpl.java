@@ -6,6 +6,7 @@ import com.SE73.appointment_service.dto.AppointmentResponse;
 import com.SE73.appointment_service.dto.AppointmentStatusUpdateRequest;
 import com.SE73.appointment_service.enums.AppointmentMode;
 import com.SE73.appointment_service.enums.AppointmentStatus;
+import com.SE73.appointment_service.enums.PaymentStatus;
 import com.SE73.appointment_service.exception.AppointmentNotFoundException;
 import com.SE73.appointment_service.exception.InvalidAppointmentStatusException;
 import com.SE73.appointment_service.exception.SlotAlreadyBookedException;
@@ -203,6 +204,24 @@ public class AppointmentServiceImpl implements AppointmentService {
         doctorClient.updateSlotStatus(cancelled.getSlotId(), true);
 
         return mapToResponse(cancelled);
+    }
+
+    /**
+     * Updates the payment status of an existing appointment.
+     *
+     * @param id the appointment UUID
+     * @param status the new payment status
+     */
+    @Override
+    @Transactional
+    public void updatePaymentStatus(UUID id, PaymentStatus status) {
+        logger.info("Updating payment status of appointment '{}' to '{}'", id, status);
+        
+        Appointment appointment = findOrThrow(id);
+        appointment.setPaymentStatus(status);
+        
+        appointmentRepository.save(appointment);
+        logger.info("Appointment '{}' payment status updated to '{}'", id, status);
     }
 
     // ---------------------------------------------------------------

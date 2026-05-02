@@ -1,6 +1,8 @@
 package com.se73.payment_service.service;
 
 import com.se73.payment_service.client.NotificationClient;
+import com.se73.payment_service.config.RabbitMQConfig;
+import com.se73.payment_service.dto.PaymentEventMessage;
 import com.se73.payment_service.dto.PaymentInitiateRequest;
 import com.se73.payment_service.dto.PaymentResponse;
 import com.se73.payment_service.dto.TransactionHistoryResponse;
@@ -11,6 +13,7 @@ import com.se73.payment_service.repository.PaymentTransactionRepository;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,16 +30,19 @@ public class PaymentService {
     private final PaymentTransactionRepository transactionRepository;
     private final StripePaymentService stripePaymentService;
     private final NotificationClient notificationClient;
+    private final RabbitTemplate rabbitTemplate;
 
     @Value("${stripe.publishable-key}")
     private String stripePublishableKey;
 
     public PaymentService(PaymentTransactionRepository transactionRepository,
                          StripePaymentService stripePaymentService,
-                         NotificationClient notificationClient) {
+                         NotificationClient notificationClient,
+                         RabbitTemplate rabbitTemplate) {
         this.transactionRepository = transactionRepository;
         this.stripePaymentService = stripePaymentService;
         this.notificationClient = notificationClient;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Transactional
@@ -97,6 +103,9 @@ public class PaymentService {
                 // Fire-and-forget notification to notification-service
                 notificationClient.sendPaymentConfirmed(transaction, bearerToken);
                 
+                // Publish payment completed event
+                publishPaymentEvent(transaction.getAppointmentId(), "PAID");
+                
                 // Return response
                 PaymentResponse response = new PaymentResponse();
                 response.setTransactionId(transaction.getId());
@@ -124,6 +133,9 @@ public class PaymentService {
                 
                 // Fire-and-forget notification to notification-service
                 notificationClient.sendPaymentConfirmed(transaction, bearerToken);
+
+                // Publish payment completed event
+                publishPaymentEvent(transaction.getAppointmentId(), "PAID");
             } else if ("requires_payment_method".equals(paymentIntent.getStatus())) {
                 throw new PaymentException("Payment method declined or invalid");
             } else if ("requires_action".equals(paymentIntent.getStatus())) {
@@ -202,6 +214,16 @@ public class PaymentService {
         return transactions.stream()
                 .map(this::mapToHistoryResponse)
                 .collect(Collectors.toList());
+    }
+
+    private void publishPaymentEvent(UUID appointmentId, String status) {
+        try {
+            PaymentEventMessage message = new PaymentEventMessage(appointmentId, status);
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY, message);
+            log.info("Published payment event for appointment: {} with status: {}", appointmentId, status);
+        } catch (Exception e) {
+            log.error("Failed to publish payment event for appointment: {}", appointmentId, e);
+        }
     }
 
     // Helper methods
