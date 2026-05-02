@@ -1,4 +1,25 @@
 services:
+  # SHARED POSTGRESQL DATABASE
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../db/init:/docker-entrypoint-initdb.d
+    networks:
+      - dsproject-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # API GATEWAY
   api-gateway:
     build:
@@ -36,25 +57,6 @@ services:
       retries: 5
 
   # AUTH SERVICE
-  auth-postgres:
-    image: postgres:16-alpine
-    container_name: auth-postgres
-    environment:
-      POSTGRES_DB: authdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - auth_postgres_data:/var/lib/postgresql/data
-    networks:
-      - dsproject-network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   auth-service:
     build:
       context: ./auth-service
@@ -63,14 +65,14 @@ services:
     ports:
       - "8081:8081"
     environment:
-      DB_HOST: auth-postgres
+      DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: authdb
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
     depends_on:
-      auth-postgres:
+      postgres:
         condition: service_healthy
     networks:
       - dsproject-network
@@ -81,25 +83,6 @@ services:
       retries: 5
 
   # PATIENT SERVICE
-  patient-postgres:
-    image: postgres:16-alpine
-    container_name: patient-postgres
-    environment:
-      POSTGRES_DB: patient_service_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
-    volumes:
-      - patient_postgres_data:/var/lib/postgresql/data
-    networks:
-      - dsproject-network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   patient-service:
     build:
       context: ./patient-service
@@ -109,7 +92,7 @@ services:
       - "8082:8082"
     environment:
       SERVER_PORT: 8082
-      SPRING_DATASOURCE_URL: jdbc:postgresql://patient-postgres:5432/patient_service_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/patient_service_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       APP_JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
@@ -120,7 +103,7 @@ services:
       AWS_ACCESS_KEY_ID: AKIAXPP4E6ECQL6Z5AE5
       AWS_SECRET_ACCESS_KEY: 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
     depends_on:
-      patient-postgres:
+      postgres:
         condition: service_healthy
       doctor-service:
         condition: service_healthy
@@ -135,25 +118,6 @@ services:
       retries: 5
 
   # DOCTOR SERVICE
-  doctor-postgres:
-    image: postgres:16-alpine
-    container_name: doctor-postgres
-    environment:
-      POSTGRES_DB: doctor_service_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5434:5432"
-    volumes:
-      - doctor_postgres_data:/var/lib/postgresql/data
-    networks:
-      - dsproject-network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   doctor-service:
     build:
       context: ./doctor-service
@@ -163,11 +127,11 @@ services:
       - "8083:8083"
     environment:
       SERVER_PORT: 8083
-      SPRING_DATASOURCE_URL: jdbc:postgresql://doctor-postgres:5432/doctor_service_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/doctor_service_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
     depends_on:
-      doctor-postgres:
+      postgres:
         condition: service_healthy
     networks:
       - dsproject-network
@@ -178,25 +142,6 @@ services:
       retries: 5
 
   # APPOINTMENT SERVICE
-  appointment-postgres:
-    image: postgres:16-alpine
-    container_name: appointment-postgres
-    environment:
-      POSTGRES_DB: appointment_service_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5436:5432"
-    volumes:
-      - appointment_postgres_data:/var/lib/postgresql/data
-    networks:
-      - dsproject-network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   appointment-service:
     build:
       context: ./appointment-service
@@ -205,11 +150,11 @@ services:
     ports:
       - "8085:8085"
     environment:
-      DB_URL: jdbc:postgresql://appointment-postgres:5432/appointment_service_db
+      DB_URL: jdbc:postgresql://postgres:5432/appointment_service_db
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
     depends_on:
-      appointment-postgres:
+      postgres:
         condition: service_healthy
     networks:
       - dsproject-network
@@ -267,26 +212,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # PAYMENT SERVICE DATABASE
-  payment-postgres:
-    image: postgres:16-alpine
-    container_name: payment-postgres
-    environment:
-      POSTGRES_DB: payment_service_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5437:5432"
-    volumes:
-      - payment_postgres_data:/var/lib/postgresql/data
-    networks:
-      - dsproject-network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # PAYMENT SERVICE
   payment-service:
     build:
@@ -296,7 +221,7 @@ services:
     ports:
       - "8086:8086"
     environment:
-      DB_HOST: payment-postgres
+      DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: payment_service_db
       DB_USERNAME: postgres
@@ -307,33 +232,13 @@ services:
       STRIPE_PUBLISHABLE_KEY: pk_test_51TMvcaA621M92XkWlrbInOEX3DYU57VAomEhoDr2ua3WZ5FziPiqDHT5lVLkuM8Js0sZeVo8v0vtjxn6fYgrkMvq00wnPkO2EX
       NOTIFICATION_SERVICE_URL: http://notification-service:8088/api/notifications
     depends_on:
-      payment-postgres:
+      postgres:
         condition: service_healthy
     networks:
       - dsproject-network
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1" ]
       interval: 15s
-      timeout: 5s
-      retries: 5
-
-  # NOTIFICATION SERVICE DATABASE
-  notification-postgres:
-    image: postgres:16-alpine
-    container_name: notification-postgres
-    environment:
-      POSTGRES_DB: notification_service_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5438:5432"
-    volumes:
-      - notification_postgres_data:/var/lib/postgresql/data
-    networks:
-      - dsproject-network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 10s
       timeout: 5s
       retries: 5
 
@@ -346,7 +251,7 @@ services:
     ports:
       - "8088:8088"
     environment:
-      DB_HOST: notification-postgres
+      DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: notification_service_db
       DB_USERNAME: postgres
@@ -359,7 +264,7 @@ services:
       MAIL_FROM: ${MAIL_FROM:-no-reply@ds-project.local}
       PATIENT_SERVICE_URL: http://patient-service:8082/api/patients
     depends_on:
-      notification-postgres:
+      postgres:
         condition: service_healthy
     networks:
       - dsproject-network
@@ -374,9 +279,4 @@ networks:
     driver: bridge
 
 volumes:
-  auth_postgres_data:
-  patient_postgres_data:
-  doctor_postgres_data:
-  payment_postgres_data:
-  appointment_postgres_data:
-  notification_postgres_data:
+  postgres_data:
