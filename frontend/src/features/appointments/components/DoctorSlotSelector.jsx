@@ -51,21 +51,21 @@ const DoctorSlotSelector = ({
       const searchStr = `${doctor.firstName} ${doctor.lastName} ${doctor.specialization}`.toLowerCase();
       const matchesSearch = !searchTerm || searchStr.includes(searchTerm.toLowerCase());
       const matchesSpec = filterSpecialization === 'All Specializations' || doctor.specialization === filterSpecialization;
-      
+
       // Mock filters logic for rich UI representation
       const mockRating = doctor.rating || 4.5;
-      const matchesRating = filterRating === 'Any Rating' 
-        || (filterRating === '4.5+' && mockRating >= 4.5) 
+      const matchesRating = filterRating === 'Any Rating'
+        || (filterRating === '4.5+' && mockRating >= 4.5)
         || (filterRating === '4.0+' && mockRating >= 4.0);
-      
+
       const matchesGender = filterGender === 'Any Gender'; // Mock gender filter as there is no gender field natively yet
-      
+
       return matchesSearch && matchesSpec && matchesRating && matchesGender;
     });
   }, [doctors, searchTerm, filterSpecialization, filterRating, filterGender]);
 
   const getDoctorSlots = (doctorUsername) => {
-    return slots.filter(s => s.doctorUsername === doctorUsername && s.isActive);
+    return slots.filter(s => s.doctorUsername === doctorUsername);
   };
 
   const handleSlotSelect = (slot) => {
@@ -109,13 +109,13 @@ const DoctorSlotSelector = ({
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
         {/* Search */}
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          {/* <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <MagnifyingGlassIcon className="h-6 w-6 text-slate-400" />
-          </div>
+          </div> */}
           <input
             type="text"
             className="block w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-transparent rounded-xl text-base focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-slate-900 placeholder-slate-400 font-medium"
-            placeholder="Search doctors by name or specialization..."
+            placeholder="Search doctors by name or specialization"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -127,17 +127,17 @@ const DoctorSlotSelector = ({
             <AdjustmentsHorizontalIcon className="w-5 h-5" />
             <span className="font-bold uppercase tracking-wider text-xs">Filters</span>
           </div>
-          
-          <select 
-            value={filterSpecialization} 
+
+          <select
+            value={filterSpecialization}
             onChange={(e) => setFilterSpecialization(e.target.value)}
             className="bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
           >
             {specializations.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
 
-          <select 
-            value={filterRating} 
+          <select
+            value={filterRating}
             onChange={(e) => setFilterRating(e.target.value)}
             className="bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
           >
@@ -146,8 +146,8 @@ const DoctorSlotSelector = ({
             <option value="4.0+">4.0+ Stars</option>
           </select>
 
-          <select 
-            value={filterGender} 
+          <select
+            value={filterGender}
             onChange={(e) => setFilterGender(e.target.value)}
             className="bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
           >
@@ -156,8 +156,8 @@ const DoctorSlotSelector = ({
             <option value="Male">Male</option>
           </select>
 
-          <select 
-            value={filterAvailability} 
+          <select
+            value={filterAvailability}
             onChange={(e) => setFilterAvailability(e.target.value)}
             className="bg-slate-50 border border-slate-200 text-slate-700 text-sm font-medium rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
           >
@@ -189,11 +189,11 @@ const DoctorSlotSelector = ({
         ) : (
           <div className="text-center py-20 bg-white border border-slate-200 rounded-2xl shadow-sm">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-               <MagnifyingGlassIcon className="w-8 h-8 text-slate-400" />
+              <MagnifyingGlassIcon className="w-8 h-8 text-slate-400" />
             </div>
             <p className="text-xl font-bold text-slate-900 mb-2">No doctors found</p>
             <p className="text-slate-500 mb-8 max-w-md mx-auto">We couldn't find any doctors matching your current filters. Try adjusting your criteria.</p>
-            <button 
+            <button
               onClick={() => {
                 setSearchTerm('');
                 setFilterSpecialization('All Specializations');
