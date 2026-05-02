@@ -8,6 +8,22 @@ import PatientPortal from "./features/patientPortal/pages/PatientPortal";
 import DoctorPortal from "./features/doctorPortal/pages/DoctorPortal";
 import { PaymentPage } from "./features/payments/pages";
 import TelemedicinePage from "./features/telemedicine/pages/TelemedicinePage";
+import { isLoggedIn } from "./features/patientPortal/services/api";
+import { isDoctorLoggedIn } from "./features/doctorPortal/services/api";
+
+function ProtectedPatientRoute({ children }) {
+  if (!isLoggedIn()) {
+    return <Navigate to="/patient" replace />;
+  }
+  return children;
+}
+
+function ProtectedDoctorRoute({ children }) {
+  if (!isDoctorLoggedIn()) {
+    return <Navigate to="/doctor" replace />;
+  }
+  return children;
+}
 
 function App() {
   return (
@@ -16,10 +32,21 @@ function App() {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/patient" element={<PatientPortal />} />
-      <Route path="/patient/payments" element={<PaymentPage />} />
+      <Route
+        path="/patient/payments"
+        element={
+          <ProtectedPatientRoute>
+            <PaymentPage />
+          </ProtectedPatientRoute>
+        }
+      />
       <Route
         path="/telemedicine/:appointmentId"
-        element={<TelemedicinePage />}
+        element={
+          <ProtectedPatientRoute>
+            <TelemedicinePage />
+          </ProtectedPatientRoute>
+        }
       />
       <Route
         path="/payments/confirmation"
@@ -31,15 +58,27 @@ function App() {
       />
       <Route
         path="/doctor/availability"
-        element={<DoctorPortal initialTab="availability" />}
+        element={
+          <ProtectedDoctorRoute>
+            <DoctorPortal initialTab="availability" />
+          </ProtectedDoctorRoute>
+        }
       />
       <Route
         path="/doctor/appointments"
-        element={<DoctorPortal initialTab="appointments" />}
+        element={
+          <ProtectedDoctorRoute>
+            <DoctorPortal initialTab="appointments" />
+          </ProtectedDoctorRoute>
+        }
       />
       <Route
         path="/doctor/prescriptions"
-        element={<DoctorPortal initialTab="prescriptions" />}
+        element={
+          <ProtectedDoctorRoute>
+            <DoctorPortal initialTab="prescriptions" />
+          </ProtectedDoctorRoute>
+        }
       />
     </Routes>
   );
