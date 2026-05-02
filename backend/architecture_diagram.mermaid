@@ -1,0 +1,48 @@
+graph TD
+    %% Entry Point
+    User([User/Frontend]) --> Gateway[api-gateway:8080]
+
+    subgraph "Orchestration & Routing"
+        Gateway
+    end
+
+    subgraph "Core Microservices"
+        Gateway --> Auth[auth-service:8081]
+        Gateway --> Patient[patient-service:8082]
+        Gateway --> Doctor[doctor-service:8083]
+        Gateway --> Appointment[appointment-service:8085]
+        Gateway --> Telemed[telemedicine-service:8084]
+        Gateway --> AI[ai-symptom-checker:8087]
+        Gateway --> Payment[payment-service:8086]
+    end
+
+    subgraph "Inter-Service Communication"
+        Patient -->|Query Appointments| Appointment
+        Patient -->|Fetch Prescriptions| Doctor
+        Telemed -->|Verify Appointment| Appointment
+        Payment -->|Trigger Alerts| Notification[notification-service:8088]
+        Notification -->|Fetch Patient Details| Patient
+    end
+
+    subgraph "Databases"
+        Auth --> AuthDB[(auth-postgres)]
+        Patient --> PatientDB[(patient-postgres)]
+        Doctor --> DoctorDB[(doctor-postgres)]
+        Appointment --> AppointDB[(appointment-postgres)]
+        Payment --> PayDB[(payment-postgres)]
+        Notification --> NotifDB[(notification-postgres)]
+    end
+
+    subgraph "External Integrations"
+        AI --- Gemini[[Gemini AI API]]
+        Patient --- S3[[AWS S3 - Reports]]
+        Payment --- Stripe[[Stripe API]]
+        Telemed --- Agora[[Agora SDK]]
+        Notification --- SMTP[[SMTP Mail Server]]
+    end
+
+    %% Styling
+    style Gateway fill:#f96,stroke:#333,stroke-width:2px
+    style Auth fill:#bbf,stroke:#333
+    style AI fill:#dfd,stroke:#333
+    style Notification fill:#ffd,stroke:#333
