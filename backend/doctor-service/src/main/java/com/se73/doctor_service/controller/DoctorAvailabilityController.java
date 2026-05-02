@@ -42,7 +42,7 @@ public class DoctorAvailabilityController {
 	) {
 		try {
 			validatePatientOrDoctorContext(userId, userRole);
-			List<DoctorAvailabilityResponse> response = availabilityService.getAllActiveSlots()
+			List<DoctorAvailabilityResponse> response = availabilityService.getAllSlots()
 					.stream()
 					.map(this::toDoctorAvailabilityResponse)
 					.toList();
@@ -171,7 +171,8 @@ public class DoctorAvailabilityController {
 			slot.getDoctorUsername(),
 			slot.getDayOfWeek(),
 			slot.getStartTime(),
-			slot.getEndTime()
+			slot.getEndTime(),
+			slot.isActive()
 		);
 	}
 

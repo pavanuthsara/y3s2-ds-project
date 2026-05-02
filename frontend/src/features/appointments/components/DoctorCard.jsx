@@ -125,7 +125,6 @@ const DoctorCard = ({
               ))}
             </div>
 
-            {/* Time Slots Grid */}
             <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto pr-1">
               {slotsByDay[activeDay]
                 ?.sort((a, b) => a.startTime.localeCompare(b.startTime))
@@ -134,8 +133,10 @@ const DoctorCard = ({
                   return (
                     <button
                       key={slot.slotId}
+                      disabled={!slot.isActive}
                       onClick={(e) => {
                         e.preventDefault();
+                        if (!slot.isActive) return;
                         onSlotSelect({
                           ...slot,
                           doctorUsername,
@@ -143,9 +144,11 @@ const DoctorCard = ({
                         });
                       }}
                       className={`py-2 px-1 text-xs font-bold rounded-lg text-center transition-all border ${
-                        isSelected
-                          ? 'bg-blue-600 border-blue-600 text-white shadow-md ring-2 ring-blue-600 ring-offset-1'
-                          : 'bg-white border-slate-200 text-slate-700 shadow-sm hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50'
+                        !slot.isActive
+                          ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                          : isSelected
+                            ? 'bg-blue-600 border-blue-600 text-white shadow-md ring-2 ring-blue-600 ring-offset-1'
+                            : 'bg-white border-slate-200 text-slate-700 shadow-sm hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50'
                       }`}
                     >
                       {formatTime(slot.startTime)}

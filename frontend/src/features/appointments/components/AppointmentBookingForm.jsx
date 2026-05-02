@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import DoctorSlotSelector from './DoctorSlotSelector';
 import { PaymentModal } from '../../payments/components';
 import { CalendarIcon, UserIcon } from '@heroicons/react/24/outline';
+import toast, { Toaster } from 'react-hot-toast';
 
 const DAY_NAME_TO_INDEX = {
   SUNDAY: 0,
@@ -127,6 +128,7 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
       if (error?.status === 409) {
         setSelectedSlot(null);
         setErrors({ submit: 'This slot has already been booked. Please choose a different time.' });
+        toast.error('This slot has already been booked. Please choose a different time.');
         return;
       }
       setErrors({ submit: error?.message || 'Failed to create appointment.' });
@@ -154,6 +156,7 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
 
   return (
     <div className="relative pb-40">
+      <Toaster position="bottom-center" reverseOrder={false} />
       {/* Notifications */}
       {success && (
         <div className="mb-6 p-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-2xl flex items-center gap-3 shadow-sm transition-all">

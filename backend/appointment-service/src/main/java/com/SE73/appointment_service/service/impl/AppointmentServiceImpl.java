@@ -91,6 +91,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment saved = appointmentRepository.save(appointment);
         logger.info("Appointment created with ID '{}'", saved.getAppointmentId());
 
+        // Mark the slot as inactive (booked) in the doctor service
+        doctorClient.updateSlotStatus(saved.getSlotId(), false);
+
         return mapToResponse(saved);
     }
 
