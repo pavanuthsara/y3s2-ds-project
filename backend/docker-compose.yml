@@ -117,8 +117,8 @@ services:
       PRESCRIPTION_SERVICE_BASE_URL: http://doctor-service:8083/api/prescriptions
       AWS_REGION: eu-north-1
       AWS_S3_BUCKET: patient-reports-damith-001
-      AWS_ACCESS_KEY_ID: AKIAXPP4E6ECQL6Z5AE5
-      AWS_SECRET_ACCESS_KEY: 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
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
     depends_on:
       patient-postgres:
         condition: service_healthy
@@ -235,9 +235,9 @@ services:
       - "8084:8084"
     environment:
       APPOINTMENT_SERVICE_BASE_URL: http://appointment-service:8085/api/appointments
-      AGORA_APP_ID: ${AGORA_APP_ID:-a06d1799ced740728903ea9f81f76267}
-      AGORA_APP_CERTIFICATE: ${AGORA_APP_CERTIFICATE:-3f928270390a4dd99849834a1bd1c61a}
-      AGORA_TOKEN_TTL_SECONDS: ${AGORA_TOKEN_TTL_SECONDS:-3600}
+      AGORA_APP_ID: ${AGORA_APP_ID}
+      AGORA_APP_CERTIFICATE: ${AGORA_APP_CERTIFICATE}
+      AGORA_TOKEN_TTL_SECONDS: ${AGORA_TOKEN_TTL_SECONDS}
     depends_on:
       appointment-service:
         condition: service_healthy
@@ -259,8 +259,8 @@ services:
       - "8087:8087"
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
-      SYMPTOM_MOCK_ENABLED: ${SYMPTOM_MOCK_ENABLED:-true}
+      GEMINI_MODEL: ${GEMINI_MODEL}
+      SYMPTOM_MOCK_ENABLED: ${SYMPTOM_MOCK_ENABLED}
     networks:
       - dsproject-network
     healthcheck:
@@ -364,11 +364,11 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       JWT_SECRET: mySecretKeyForJwtTokenGenerationAndValidationPurposesOnly123456789
-      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
-      MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_USERNAME: ${MAIL_USERNAME:-}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
-      MAIL_FROM: ${MAIL_FROM:-no-reply@ds-project.local}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
       PATIENT_SERVICE_URL: http://patient-service:8082/api/patients
     depends_on:
       notification-postgres:
