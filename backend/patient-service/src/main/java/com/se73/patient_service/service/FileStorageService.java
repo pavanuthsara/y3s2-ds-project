@@ -146,8 +146,19 @@ public class FileStorageService {
     }
 
     private String extractS3Key(String s3Path) {
-        String s3Key = s3Path.substring(s3Path.indexOf("/") + 1);
-        return s3Key.substring(s3Key.indexOf("/") + 1);
+        if (s3Path == null || s3Path.isEmpty()) {
+            return s3Path;
+        }
+
+        if (s3Path.startsWith("s3://")) {
+            String withoutScheme = s3Path.substring(5);
+            int slashIndex = withoutScheme.indexOf('/');
+            if (slashIndex >= 0) {
+                return withoutScheme.substring(slashIndex + 1);
+            }
+        }
+
+        return s3Path;
     }
 
     private String inferContentType(String fileName) {

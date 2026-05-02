@@ -117,8 +117,8 @@ services:
       PRESCRIPTION_SERVICE_BASE_URL: http://doctor-service:8083/api/prescriptions
       AWS_REGION: eu-north-1
       AWS_S3_BUCKET: patient-reports-damith-001
-      AWS_ACCESS_KEY_ID: AKIAXPP4E6ECQL6Z5AE5
-      AWS_SECRET_ACCESS_KEY: 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
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
     depends_on:
       patient-postgres:
         condition: service_healthy
