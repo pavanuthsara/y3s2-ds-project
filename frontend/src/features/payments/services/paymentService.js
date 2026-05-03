@@ -71,13 +71,17 @@ export const initiatePayment = async (appointmentId, patientId, amount, currency
  * Confirm payment after customer completes payment gateway
  * POST /api/payments/confirm
  */
-export const confirmPayment = async (transactionId, paymentMethodId) => {
+export const confirmPayment = async (transactionId, paymentMethodId, appointmentDetails) => {
   try {
     const response = await axios.post(
       `${PAYMENT_API}/confirm`,
       {
         transactionId,
         paymentMethodId,
+        doctorName: appointmentDetails?.doctorName,
+        appointmentMode: appointmentDetails?.appointmentMode,
+        hospital: appointmentDetails?.hospital,
+        appointmentDateTime: appointmentDetails?.appointmentDateTime,
       },
       {
         headers: getAuthHeaders(),

@@ -41,4 +41,9 @@ public class PaymentConfirmedNotificationRequest {
 
     /** Optional — display name for email templating. */
     private String patientName;
+
+    private String doctorName;
+    private String appointmentMode;
+    private String hospital;
+    private String appointmentDateTime;
 }
