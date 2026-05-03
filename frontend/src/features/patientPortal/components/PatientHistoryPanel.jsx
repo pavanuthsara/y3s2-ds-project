@@ -99,7 +99,7 @@ export function PatientHistoryPanel({ patientId }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 text-sm">
                 <div>
                   <p className="text-gray-500">Mode</p>
                   <p className="text-gray-800 font-medium">{formatLabel(item.appointmentMode)}</p>
@@ -111,10 +111,6 @@ export function PatientHistoryPanel({ patientId }) {
                 <div>
                   <p className="text-gray-500">Booked At</p>
                   <p className="text-gray-800 font-medium">{formatDateTime(item.createdAt)}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Appointment ID</p>
-                  <p className="text-gray-800 font-medium break-all">{item.appointmentId || 'Not available'}</p>
                 </div>
               </div>
 

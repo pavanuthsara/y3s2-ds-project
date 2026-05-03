@@ -1,15 +1,16 @@
+/* ── Legacy CSS variable overrides to match new brand palette ── */
 :root {
-  --bg-cream: #f5f2e9;
-  --bg-warm: #fffbf2;
-  --ink: #17313f;
-  --muted-ink: #516d7a;
-  --brand: #005f73;
-  --brand-soft: #d2ebe5;
-  --accent: #ee9b00;
-  --danger: #b42318;
-  --surface: #ffffff;
-  --border: #d9e2e8;
-  --shadow: 0 8px 25px rgba(23, 49, 63, 0.1);
+  --bg-cream: oklch(0.99 0.005 200);
+  --bg-warm: oklch(0.97 0.012 200);
+  --ink: oklch(0.18 0.04 240);
+  --muted-ink: oklch(0.45 0.03 240);
+  --brand: oklch(0.55 0.13 200);       /* teal */
+  --brand-soft: oklch(0.93 0.05 180);  /* mint */
+  --accent: oklch(0.78 0.14 180);      /* mint-glow */
+  --danger: oklch(0.6 0.22 25);
+  --surface: oklch(1 0 0);
+  --border: oklch(0.9 0.015 220);
+  --shadow: 0 8px 25px oklch(0.22 0.06 245 / 0.1);
 }
 
 * {
@@ -18,62 +19,18 @@
 
 body {
   margin: 0;
-  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
   color: var(--ink);
-  background:
-    radial-gradient(circle at 10% 20%, rgba(0, 95, 115, 0.08), transparent 40%),
-    radial-gradient(circle at 80% 0%, rgba(238, 155, 0, 0.12), transparent 35%),
-    linear-gradient(160deg, var(--bg-warm), var(--bg-cream));
+  background: oklch(0.99 0.005 200);
   min-height: 100vh;
 }
 
 .app-shell {
   width: 100%;
   margin: 0;
-  padding: 1rem 1.5rem;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-.top-nav {
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: var(--shadow);
-  border-radius: 1rem;
-  backdrop-filter: blur(6px);
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-}
-
-.top-nav ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
-
-.top-nav a {
-  text-decoration: none;
-  color: var(--ink);
-  padding: 0.45rem 0.9rem;
-  border-radius: 999px;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.top-nav a:hover {
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-
-.page-shell {
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  padding: 1rem;
-  flex-grow: 1;
 }
 
 .simple-page {
@@ -86,14 +43,4 @@ body {
 
 .simple-page p {
   color: var(--muted-ink);
-}
-
-@media (max-width: 768px) {
-  .app-shell {
-    padding: 0.85rem;
-  }
-
-  .top-nav {
-    padding: 0.6rem;
-  }
 }

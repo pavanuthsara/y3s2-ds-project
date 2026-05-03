@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { paymentService } from '../services';
+import appointmentService from '../../appointments/services/appointmentService';
 import TransactionCard from './TransactionCard';
 import PaymentLoader from './PaymentLoader';
 
@@ -9,41 +10,49 @@ import PaymentLoader from './PaymentLoader';
  */
 export const TransactionHistory = ({
   patientId,
-  showActions = true,
-  onRefund,
-  onViewDetails,
   title = 'Payment History',
 }) => {
   const [transactions, setTransactions] = useState([]);
+  const [appointmentMap, setAppointmentMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [sortBy, setSortBy] = useState('date-desc');
 
-  // Fetch transaction history
   useEffect(() => {
-    const fetchTransactions = async () => {
-      if (!patientId) {
-        setLoading(false);
-        return;
-      }
-
+    const fetchData = async () => {
+      if (!patientId) { setLoading(false); return; }
       try {
         setLoading(true);
         setError('');
-
         const data = await paymentService.getPatientHistory(patientId);
-        setTransactions(Array.isArray(data) ? data : []);
+        const txns = Array.isArray(data) ? data : [];
+        setTransactions(txns);
+
+        // Fetch appointment details for each transaction in parallel
+        const entries = await Promise.all(
+          txns.map(async (txn) => {
+            const apptId = txn.appointmentId;
+            if (!apptId) return null;
+            try {
+              const appt = await appointmentService.getAppointmentById(apptId);
+              return [apptId, appt];
+            } catch {
+              return null;
+            }
+          })
+        );
+        const map = {};
+        entries.forEach((e) => { if (e) map[e[0]] = e[1]; });
+        setAppointmentMap(map);
       } catch (err) {
-        console.error('Error fetching transactions:', err);
         setError(err.message || 'Failed to load payment history');
         setTransactions([]);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchTransactions();
+    fetchData();
   }, [patientId]);
 
   // Filter transactions
@@ -154,9 +163,7 @@ export const TransactionHistory = ({
             <TransactionCard
               key={transaction.transactionId || transaction.id}
               transaction={transaction}
-              showActions={showActions}
-              onRefund={onRefund}
-              onViewDetails={onViewDetails}
+              appointment={appointmentMap[transaction.appointmentId]}
             />
           ))}
         </div>

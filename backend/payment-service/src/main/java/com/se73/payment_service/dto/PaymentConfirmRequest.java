@@ -14,4 +14,9 @@ public class PaymentConfirmRequest {
     private String transactionId;
 
     private String paymentMethodId;
+
+    private String doctorName;
+    private String appointmentMode;
+    private String hospital;
+    private String appointmentDateTime;
 }

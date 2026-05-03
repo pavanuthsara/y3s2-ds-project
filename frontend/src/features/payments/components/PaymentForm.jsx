@@ -18,6 +18,7 @@ export const PaymentForm = ({
   onSuccess,
   onCancel,
   onPaymentInitiated,
+  appointmentDetails,
 }) => {
   const { 
     formData, 
@@ -109,7 +110,7 @@ export const PaymentForm = ({
           // Pass null for paymentMethodId — Stripe already confirmed the intent,
           // so the backend just needs to retrieve status and update the DB row.
           try {
-            await confirmPaymentOnBackend(transactionId, null);
+            await confirmPaymentOnBackend(transactionId, null, appointmentDetails);
           } catch (syncErr) {
             console.warn('Backend confirm sync failed (payment still succeeded at Stripe):', syncErr);
           }
@@ -183,6 +184,7 @@ export const PaymentForm = ({
         appointmentId={appointmentId}
         amount={amount}
         currency={currency}
+        appointmentDetails={appointmentDetails}
         onClose={handleCloseConfirmation}
       />
     );
@@ -272,10 +274,7 @@ export const PaymentForm = ({
 
       {/* Amount Display */}
       <div className="p-4 bg-gray-50 rounded-lg">
-        <div className="flex justify-between items-center mb-3">
-          <span className="text-gray-700 font-semibold">Appointment ID:</span>
-          <span className="font-mono text-sm text-gray-800">{appointmentId?.substring(0, 8)}...</span>
-        </div>
+
         <div className="border-t pt-3 flex justify-between items-center">
           <span className="text-gray-700 font-semibold">Amount to Pay:</span>
           <span className="text-2xl font-bold text-blue-600">

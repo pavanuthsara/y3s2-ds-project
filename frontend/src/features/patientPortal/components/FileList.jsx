@@ -40,9 +40,15 @@ export function FileList({ patientId, refreshTrigger }) {
     }
   };
 
-  const handleViewReport = (report) => {
+  const handleViewReport = async (report) => {
     if (!report.downloadUrl) {
       setError('This report does not have a download link yet.');
+      return;
+    }
+
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setError('You must be logged in to view this report.');
       return;
     }
 
@@ -50,10 +56,45 @@ export function FileList({ patientId, refreshTrigger }) {
       ? report.downloadUrl
       : `http://localhost:8080${report.downloadUrl}`;
 
-    const openedWindow = window.open(reportUrl, '_blank', 'noopener,noreferrer');
+    try {
+      setError('');
 
-    if (!openedWindow) {
-      setError('Unable to open the report. Allow pop-ups and try again.');
+      const response = await fetch(reportUrl, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        let message = 'Failed to load the report.';
+
+        try {
+          const errorData = await response.json();
+          message = errorData.message || message;
+        } catch {
+          // Fall back to the default message for non-JSON file responses.
+        }
+
+        throw new Error(message);
+      }
+
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.download = report.fileName || 'report';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.setTimeout(() => {
+        URL.revokeObjectURL(blobUrl);
+      }, 60000);
+    } catch (err) {
+      setError(err.message || 'Unable to open the report.');
     }
   };
 

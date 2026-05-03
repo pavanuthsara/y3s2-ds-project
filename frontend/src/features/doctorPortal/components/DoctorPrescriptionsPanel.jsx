@@ -220,21 +220,14 @@ export default function DoctorPrescriptionsPanel({ session }) {
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
                   Selected appointment
                 </p>
-                <div className="mt-3 grid gap-3 text-sm md:grid-cols-2">
-                  <div>
-                    <p className="text-slate-500">Appointment ID</p>
-                    <p className="break-all font-medium text-slate-900">
-                      {selectedAppointment.appointmentId ||
-                        "Choose an appointment from the Appointments tab"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500">Patient ID</p>
-                    <p className="break-all font-medium text-slate-900">
-                      {selectedAppointment.patientId ||
-                        "Choose an appointment from the Appointments tab"}
-                    </p>
-                  </div>
+                <div className="mt-3 text-sm">
+                   {selectedAppointment.appointmentId ? (
+                     <p className="font-medium text-slate-900 flex items-center gap-2">
+                       <span className="text-emerald-600 font-bold">✓</span> Appointment Selected
+                     </p>
+                   ) : (
+                     <p className="text-slate-500">Choose an appointment from the Appointments tab</p>
+                   )}
                 </div>
               </div>
               {selectedAppointment.appointmentId ? (
@@ -250,15 +243,7 @@ export default function DoctorPrescriptionsPanel({ session }) {
           </div>
         ) : (
           <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            Editing prescription for appointment{" "}
-            <span className="font-semibold">
-              {editingPrescription.appointmentId}
-            </span>{" "}
-            and patient{" "}
-            <span className="font-semibold">
-              {editingPrescription.patientId}
-            </span>
-            .
+            Editing existing prescription.
             <button
               className="ml-3 inline-flex rounded-full border border-amber-300 px-3 py-1 text-xs font-semibold text-amber-900 transition hover:bg-amber-100"
               onClick={cancelEdit}
@@ -423,20 +408,7 @@ export default function DoctorPrescriptionsPanel({ session }) {
                   </p>
                 </div>
 
-                <div className="mt-4 grid gap-4 text-sm md:grid-cols-2">
-                  <div>
-                    <p className="text-slate-500">Patient ID</p>
-                    <p className="font-medium text-slate-800">
-                      {prescription.patientId || "Not available"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500">Appointment ID</p>
-                    <p className="break-all font-medium text-slate-800">
-                      {prescription.appointmentId || "Not available"}
-                    </p>
-                  </div>
-                </div>
+
 
                 <div className="mt-4">
                   <p className="text-slate-500 text-sm">Instructions</p>

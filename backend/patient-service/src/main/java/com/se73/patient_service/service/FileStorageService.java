@@ -37,13 +37,13 @@ public class FileStorageService {
         }
 
         try {
-            // Generate unique file key
+            // Use a patient-scoped key so reports are easy to isolate and clean up.
             String originalFileName = file.getOriginalFilename();
             String fileExtension = getFileExtension(originalFileName);
             String uniqueFileName = patientId + "_" + UUID.randomUUID() + "." + fileExtension;
             String s3Key = "reports/" + patientId + "/" + uniqueFileName;
 
-            // Upload to S3
+            // Upload raw bytes to S3; only the metadata is kept in PostgreSQL.
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(s3Key)
@@ -55,7 +55,7 @@ public class FileStorageService {
                     RequestBody.fromBytes(file.getBytes())
             );
 
-            // Save metadata to database
+            // Save enough metadata for listing, downloading, and deleting the file later.
             MedicalReport report = new MedicalReport(
                     patientId,
                     originalFileName,
@@ -81,7 +81,7 @@ public class FileStorageService {
 
             String s3Key = extractS3Key(report.getMinioPath());
 
-            // Delete from S3
+            // Remove the object from storage first so the database does not point to a missing file.
             DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                     .bucket(bucketName)
                     .key(s3Key)
@@ -89,7 +89,7 @@ public class FileStorageService {
 
             s3Client.deleteObject(deleteObjectRequest);
 
-            // Delete from database
+            // Then remove the metadata row.
             medicalReportRepository.deleteById(reportId);
 
         } catch (S3Exception e) {
@@ -109,6 +109,7 @@ public class FileStorageService {
 
             try (ResponseInputStream<GetObjectResponse> objectStream = s3Client.getObject(getObjectRequest)) {
                 byte[] fileBytes = objectStream.readAllBytes();
+                // Fall back to file-name-based inference when S3 does not return a content type.
                 String contentType = objectStream.response().contentType();
                 if (contentType == null || contentType.isBlank()) {
                     contentType = inferContentType(report.getFileName());
@@ -146,8 +147,19 @@ public class FileStorageService {
     }
 
     private String extractS3Key(String s3Path) {
-        String s3Key = s3Path.substring(s3Path.indexOf("/") + 1);
-        return s3Key.substring(s3Key.indexOf("/") + 1);
+        if (s3Path == null || s3Path.isEmpty()) {
+            return s3Path;
+        }
+
+        if (s3Path.startsWith("s3://")) {
+            String withoutScheme = s3Path.substring(5);
+            int slashIndex = withoutScheme.indexOf('/');
+            if (slashIndex >= 0) {
+                return withoutScheme.substring(slashIndex + 1);
+            }
+        }
+
+        return s3Path;
     }
 
     private String inferContentType(String fileName) {

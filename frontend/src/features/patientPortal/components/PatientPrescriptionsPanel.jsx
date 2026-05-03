@@ -82,14 +82,10 @@ export function PatientPrescriptionsPanel({ patientId }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-sm">
+              <div className="grid grid-cols-1 gap-4 mt-4 text-sm">
                 <div>
                   <p className="text-gray-500">Dosage</p>
                   <p className="text-gray-800 font-medium">{prescription.dosage || 'Not specified'}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Appointment ID</p>
-                  <p className="text-gray-800 font-medium break-all">{prescription.appointmentId || 'Not available'}</p>
                 </div>
               </div>
 

@@ -66,7 +66,7 @@ public class AuthControllerTest {
     @Test
     void registerUser_Success() {
         when(userService.registerUser(any(RegisterRequest.class))).thenReturn(user);
-        when(jwtTokenProvider.generateTokenFromUsername(anyString())).thenReturn("testToken");
+        when(jwtTokenProvider.generateTokenFromUser(user)).thenReturn("testToken");
 
         ResponseEntity<?> response = authController.registerUser(registerRequest);
 

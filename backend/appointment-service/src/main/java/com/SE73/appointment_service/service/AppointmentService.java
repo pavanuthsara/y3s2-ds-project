@@ -3,6 +3,7 @@ package com.SE73.appointment_service.service;
 import com.SE73.appointment_service.dto.AppointmentRequest;
 import com.SE73.appointment_service.dto.AppointmentResponse;
 import com.SE73.appointment_service.dto.AppointmentStatusUpdateRequest;
+import com.SE73.appointment_service.enums.PaymentStatus;
 
 import java.util.List;
 import java.util.UUID;
@@ -67,5 +68,13 @@ public interface AppointmentService {
      * @return list of all appointment response DTOs
      */
     List<AppointmentResponse> getAllAppointments();
+
+    /**
+     * Updates the payment status of an existing appointment.
+     *
+     * @param id the appointment UUID
+     * @param status the new payment status
+     */
+    void updatePaymentStatus(UUID id, PaymentStatus status);
 }
 

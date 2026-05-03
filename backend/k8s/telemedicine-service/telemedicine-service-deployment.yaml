@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemedicine-service
+  labels:
+    app: telemedicine-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telemedicine-service
+  template:
+    metadata:
+      labels:
+        app: telemedicine-service
+    spec:
+      containers:
+      - name: telemedicine-service
+        image: telemedicine-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8084
+        env:
+        - name: APPOINTMENT_SERVICE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: telemedicine-config
+              key: APPOINTMENT_SERVICE_BASE_URL
+        - name: AGORA_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: telemedicine-secret
+              key: AGORA_APP_ID
+        - name: AGORA_APP_CERTIFICATE
+          valueFrom:
+            secretKeyRef:
+              name: telemedicine-secret
+              key: AGORA_APP_CERTIFICATE
+        - name: AGORA_TOKEN_TTL_SECONDS
+          valueFrom:
+            configMapKeyRef:
+              name: telemedicine-config
+              key: AGORA_TOKEN_TTL_SECONDS
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8084
+          initialDelaySeconds: 120
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8084
+          initialDelaySeconds: 120
+          periodSeconds: 10

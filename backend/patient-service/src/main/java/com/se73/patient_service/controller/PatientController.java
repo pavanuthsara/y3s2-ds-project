@@ -19,6 +19,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.core.io.ByteArrayResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +32,7 @@ import java.util.UUID;
 @RequestMapping("/api/patients")
 @CrossOrigin(origins = "*")
 public class PatientController {
+    private static final Logger logger = LoggerFactory.getLogger(PatientController.class);
 
     private final PatientProfileService patientProfileService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -98,6 +101,7 @@ public class PatientController {
             @PathVariable Long id
     ) {
         try {
+            // The controller resolves the logged-in patient first, then delegates the remote lookup.
             PatientProfile patient = getAuthorizedPatient(authHeader, id);
             List<PatientAppointmentHistoryResponse> history = patientRecordsService.getPatientHistory(patient);
             return ResponseEntity.ok(history);
@@ -138,6 +142,7 @@ public class PatientController {
         try {
             getAuthorizedPatient(authHeader, id);
 
+            // The file goes to S3; the response contains metadata plus a download URL.
             MedicalReport report = fileStorageService.uploadFile(id, file, description);
             return ResponseEntity.status(HttpStatus.CREATED).body(new MedicalReportResponse(report, "/api/patients/" + id + "/reports/" + report.getId() + "/download"));
         } catch (IllegalArgumentException e) {
@@ -145,6 +150,7 @@ public class PatientController {
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(e.getMessage()));
         } catch (RuntimeException e) {
+            logger.error("Error uploading medical report for patient {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
         }
     }
@@ -258,6 +264,7 @@ public class PatientController {
     private PatientProfile getAuthorizedPatient(String authHeader, Long id) {
         String username = extractUsername(authHeader);
         PatientProfile patient = patientProfileService.getProfile(username);
+        // Path-based access is restricted to the patient profile attached to the current token.
         if (!patient.getId().equals(id)) {
             throw new SecurityException("You can only access your own patient data");
         }
@@ -270,6 +277,7 @@ public class PatientController {
         }
 
         String token = authHeader.substring(7);
+        // This service validates the JWT directly instead of relying on a gateway-provided principal.
         if (!jwtTokenProvider.validateToken(token)) {
             throw new IllegalArgumentException("Invalid token");
         }

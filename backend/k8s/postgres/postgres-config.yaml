@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shared-postgres-init-script
+  namespace: default
+data:
+  init.sql: |
+    CREATE DATABASE payment_service_db;
+    CREATE DATABASE patient_service_db;
+    CREATE DATABASE notification_service_db;
+    CREATE DATABASE doctor_service_db;
+    CREATE DATABASE authdb;
+    CREATE DATABASE appointment_service_db;
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: shared-postgres-secret
+  namespace: default
+type: Opaque
+data:
+  # Values are base64 encoded
+  POSTGRES_PASSWORD: cG9zdGdyZXM= # postgres

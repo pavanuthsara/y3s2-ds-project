@@ -1,0 +1,70 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam backgroundColor #FFFFFF
+skinparam packageBackgroundColor #F9F9F9
+
+actor "User/Frontend" as User
+
+package "Orchestration & Routing" {
+    component "api-gateway:8080" as Gateway #f96
+}
+
+package "Core Microservices" {
+    component "auth-service:8081" as Auth #bbf
+    component "patient-service:8082" as Patient
+    component "doctor-service:8083" as Doctor
+    component "appointment-service:8085" as Appointment
+    component "telemedicine-service:8084" as Telemed
+    component "ai-symptom-checker:8087" as AI #dfd
+    component "payment-service:8086" as Payment
+}
+
+component "notification-service:8088" as Notification #ffd
+
+package "Databases" {
+    database "auth-postgres" as AuthDB
+    database "patient-postgres" as PatientDB
+    database "doctor-postgres" as DoctorDB
+    database "appointment-postgres" as AppointDB
+    database "payment-postgres" as PayDB
+    database "notification-postgres" as NotifDB
+}
+
+package "External Integrations" {
+    cloud "Gemini AI API" as Gemini
+    cloud "AWS S3 - Reports" as S3
+    cloud "Stripe API" as Stripe
+    cloud "Agora SDK" as Agora
+    cloud "SMTP Mail Server" as SMTP
+}
+
+User --> Gateway
+
+Gateway --> Auth
+Gateway --> Patient
+Gateway --> Doctor
+Gateway --> Appointment
+Gateway --> Telemed
+Gateway --> AI
+Gateway --> Payment
+
+Patient --> Appointment : Query Appointments
+Patient --> Doctor : Fetch Prescriptions
+Telemed --> Appointment : Verify Appointment
+Payment --> Notification : Trigger Alerts
+Notification --> Patient : Fetch Patient Details
+
+Auth --> AuthDB
+Patient --> PatientDB
+Doctor --> DoctorDB
+Appointment --> AppointDB
+Payment --> PayDB
+Notification --> NotifDB
+
+AI -- Gemini
+Patient -- S3
+Payment -- Stripe
+Telemed -- Agora
+Notification -- SMTP
+
+@enduml

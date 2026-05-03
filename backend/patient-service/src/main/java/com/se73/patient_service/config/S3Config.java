@@ -22,6 +22,7 @@ public class S3Config {
 
     @Bean
     public S3Client s3Client() {
+        // The patient service stores uploaded medical report files in S3.
         return S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(

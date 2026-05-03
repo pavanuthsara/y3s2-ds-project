@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-symptom-checker
+  labels:
+    app: ai-symptom-checker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-symptom-checker
+  template:
+    metadata:
+      labels:
+        app: ai-symptom-checker
+    spec:
+      containers:
+      - name: ai-symptom-checker
+        image: ai-symptom-checker:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8087
+        env:
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-symptom-secret
+              key: GEMINI_API_KEY
+        - name: GEMINI_MODEL
+          valueFrom:
+            configMapKeyRef:
+              name: ai-symptom-config
+              key: GEMINI_MODEL
+        - name: SYMPTOM_MOCK_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: ai-symptom-config
+              key: SYMPTOM_MOCK_ENABLED
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/symptoms/health
+            port: 8087
+          initialDelaySeconds: 120
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /api/symptoms/health
+            port: 8087
+          initialDelaySeconds: 120
+          periodSeconds: 10

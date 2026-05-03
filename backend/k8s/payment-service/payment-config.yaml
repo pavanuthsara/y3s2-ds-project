@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-config
+  namespace: default
+data:
+  DB_HOST: shared-postgres-service
+  DB_PORT: "5432"
+  DB_NAME: payment_service_db
+  DB_USERNAME: postgres
+  NOTIFICATION_SERVICE_URL: http://notification-service:8088/api/notifications
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: payment-secret
+  namespace: default
+type: Opaque
+data:
+  # Values are base64 encoded
+  DB_PASSWORD: cG9zdGdyZXM= # postgres
+  JWT_SECRET: bXlTZWNyZXRLZXlGb3JKd3RUb2tlbkdlbmVyYXRpb25BbmRWYWxpZGF0aW9uUHVycG9zZXNPbmx5MTIzNDU2Nzg5
+  STRIPE_SECRET_KEY: c2tfdGVzdF81MVRNdmNhQTYyMU05MlhrV0pHek1ucVpWZDlMOHltMEVhbUVsbDQxMWp0WVFaZEtoSlMzZ0FhNkhTeUE4elZKYkZGRXNyZDRXeklmNFJrWEd0ckZhbDdNODAwMll2bW9TdVg=
+  STRIPE_WEBHOOK_SECRET: d2hzZWNfdGVzdF9zZWNyZXQ=
+  STRIPE_PUBLISHABLE_KEY: cGtfdGVzdF81MVRNdmNhQTYyMU05MlhrV2xyYkluT0VYM0RZVTU3VkFvbUVob0RyMnVhM1daNUZ6aVBpcURIVDVsVkxrTThKczBzWmVWbzh2MHRqeG42ZllncmtNdnEwMHduUGtPMkVY

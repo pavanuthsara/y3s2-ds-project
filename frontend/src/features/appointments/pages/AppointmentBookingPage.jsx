@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import AppointmentBookingForm from '../components/AppointmentBookingForm';
-import appointmentService from '../services/appointmentService';
-import '../styles/AppointmentBooking.css';
+import { useState, useEffect } from "react";
+import AppointmentBookingForm from "../components/AppointmentBookingForm";
+import appointmentService from "../services/appointmentService";
+import "../styles/AppointmentBooking.css";
 
 const AppointmentBookingPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -10,7 +10,7 @@ const AppointmentBookingPage = () => {
 
   // Get patient ID from session
   useEffect(() => {
-    const username = localStorage.getItem('username');
+    const username = localStorage.getItem("username");
     if (username) {
       setPatientIdFromSession(username);
     }
@@ -25,7 +25,8 @@ const AppointmentBookingPage = () => {
         slotId: formData.slotId,
       };
 
-      const result = await appointmentService.createAppointment(appointmentData);
+      const result =
+        await appointmentService.createAppointment(appointmentData);
       setBookingResult({
         success: true,
         appointment: result,
@@ -33,7 +34,7 @@ const AppointmentBookingPage = () => {
     } catch (error) {
       setBookingResult({
         success: false,
-        error: error.message || 'Failed to book appointment',
+        error: error.message || "Failed to book appointment",
       });
       throw error;
     } finally {
@@ -74,13 +75,13 @@ const AppointmentBookingPage = () => {
                     <span className="label">Date & Time:</span>
                     <span className="value">
                       {new Date(
-                        bookingResult.appointment.appointmentDateTime
-                      ).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
+                        bookingResult.appointment.appointmentDateTime,
+                      ).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </span>
                   </div>

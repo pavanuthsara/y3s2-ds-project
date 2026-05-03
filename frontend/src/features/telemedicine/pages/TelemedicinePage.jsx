@@ -75,7 +75,7 @@ export default function TelemedicinePage() {
       }
       if (client) {
         client.removeAllListeners();
-        client.leave().catch(() => {});
+        client.leave().catch(() => { });
       }
     };
   }, []);
@@ -307,7 +307,7 @@ export default function TelemedicinePage() {
               the same call room.
             </p>
           </div>
-          <div className="flex w-full gap-3 lg:w-[520px]">
+          {/* <div className="flex w-full gap-3 lg:w-[520px]">
             <input
               className="min-w-0 flex-1 rounded-2xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
               onChange={(event) => setAppointmentId(event.target.value)}
@@ -322,7 +322,7 @@ export default function TelemedicinePage() {
             >
               {lookupBusy ? "Checking..." : "Load"}
             </button>
-          </div>
+          </div> */}
         </div>
         {(joinError || lookupError) && (
           <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">

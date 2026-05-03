@@ -9,6 +9,7 @@ public class HttpClientConfig {
 
     @Bean
     public RestTemplate restTemplate() {
+        // Used for synchronous calls to appointment-service and doctor-service.
         return new RestTemplate();
     }
 }

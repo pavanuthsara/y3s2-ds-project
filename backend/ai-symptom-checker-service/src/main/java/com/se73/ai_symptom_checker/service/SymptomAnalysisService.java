@@ -32,29 +32,31 @@ public class SymptomAnalysisService {
     private boolean mockEnabled;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private static final String GEMINI_API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1/models/%s:generateContent";
+    private static final String GEMINI_API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent";
 
     public SymptomCheckResponse analyzeSymptoms(SymptomCheckRequest request) {
         log.info("Analyzing symptoms: {}", request.getSymptoms());
 
         try {
+            /* 
             if (shouldUseMockResponse()) {
                 log.warn("Using mock symptom analysis response (mockEnabled={}, apiKeyConfigured={})", mockEnabled, isApiKeyConfigured());
                 return buildMockResponse(request);
             }
+            */
 
             String prompt = buildAnalysisPrompt(request);
             String geminiResponse = callGeminiAPI(prompt);
 
             if (geminiResponse == null || geminiResponse.isBlank()) {
-                log.warn("Gemini response was empty, falling back to mock symptom analysis");
-                return buildMockResponse(request);
+                log.error("Gemini response was empty, check API key and model name");
+                throw new RuntimeException("Gemini API returned an empty response. Verify if the model name and API key are correct.");
             }
 
             return parseGeminiResponse(geminiResponse, request);
         } catch (Exception e) {
-            log.error("Error analyzing symptoms", e);
-            return buildMockResponse(request);
+            log.error("Error analyzing symptoms: {}", e.getMessage(), e);
+            throw new RuntimeException("AI Analysis failed: " + e.getMessage(), e);
         }
     }
 
@@ -116,18 +118,15 @@ public class SymptomAnalysisService {
 
     private String callGeminiAPI(String prompt) {
         try {
-            log.info("Calling Gemini API");
+            log.info("Calling Gemini API with model: {}", geminiModel);
             
-            // Build request body
-            String requestBody = String.format("""
-                {
-                  "contents": [{
-                    "parts": [{
-                      "text": "%s"
-                    }]
-                  }]
-                }
-                """, escapeJsonString(prompt));
+            // Build request body using ObjectMapper for proper escaping
+            var contents = List.of(
+                java.util.Map.of("parts", List.of(
+                    java.util.Map.of("text", prompt)
+                ))
+            );
+            String requestBody = objectMapper.writeValueAsString(java.util.Map.of("contents", contents));
             
             // Make HTTP POST request
             String endpoint = String.format(GEMINI_API_URL_TEMPLATE, geminiModel);
@@ -147,24 +146,23 @@ public class SymptomAnalysisService {
             int responseCode = connection.getResponseCode();
             log.info("Gemini API Response Code: {}", responseCode);
             
-            String response;
             if (responseCode == 200) {
-                response = readResponseStream(connection.getInputStream());
+                String response = readResponseStream(connection.getInputStream());
                 log.info("Gemini API Response received successfully");
-                log.debug("Response: {}", response);
+                return extractTextFromGeminiResponse(response);
             } else {
                 // Read error response
                 String errorResponse = readResponseStream(connection.getErrorStream());
                 log.error("Gemini API Error Response Code: {} - {}", responseCode, errorResponse);
-                return null;
+                throw new RuntimeException("Gemini API error (Code " + responseCode + "): " + errorResponse);
             }
-            
-            // Extract text from Gemini response
-            return extractTextFromGeminiResponse(response);
             
         } catch (Exception e) {
             log.error("Error calling Gemini API: {}", e.getMessage(), e);
-            return null;
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+            throw new RuntimeException("API call failed: " + e.getMessage());
         }
     }
     
@@ -201,30 +199,49 @@ public class SymptomAnalysisService {
         return null;
     }
     
-    private String escapeJsonString(String input) {
-        return input
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
-            .replace("\t", "\\t");
-    }
 
-    private SymptomCheckResponse parseGeminiResponse(String jsonResponse, SymptomCheckRequest request) {
+    private SymptomCheckResponse parseGeminiResponse(String aiText, SymptomCheckRequest request) {
         try {
-            // Clean up response if needed (remove markdown code blocks if present)
-            String cleanedResponse = jsonResponse
-                .replaceFirst("^```json\\s*", "")
-                .replaceFirst("^```\\s*", "")
-                .replaceAll("\\s*```$", "");
+            log.debug("Parsing AI response: {}", aiText);
             
-            SymptomCheckResponse response = objectMapper.readValue(cleanedResponse, SymptomCheckResponse.class);
+            // Try to find a JSON block in the response
+            String jsonToParse = aiText;
+            
+            // Check for markdown code blocks
+            if (aiText.contains("```")) {
+                int start = aiText.indexOf("```json");
+                if (start == -1) {
+                    start = aiText.indexOf("```");
+                } else {
+                    start += 7; // Skip ```json
+                }
+                
+                if (start != -1) {
+                    if (aiText.indexOf("```", start) == -1 && start < 7) {
+                         start += 3; // Skip ``` if it wasn't ```json
+                    }
+                    
+                    int end = aiText.indexOf("```", start);
+                    if (end != -1) {
+                        jsonToParse = aiText.substring(start, end).trim();
+                    }
+                }
+            } else {
+                // If no code blocks, try to find the first '{' and last '}'
+                int start = aiText.indexOf('{');
+                int end = aiText.lastIndexOf('}');
+                if (start != -1 && end != -1 && end > start) {
+                    jsonToParse = aiText.substring(start, end + 1).trim();
+                }
+            }
+            
+            SymptomCheckResponse response = objectMapper.readValue(jsonToParse, SymptomCheckResponse.class);
             response.setAnalysisTimestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             response.setDisclaimer("This is a preliminary AI-based analysis and should NOT be used as a substitute for professional medical advice. Always consult with a qualified healthcare provider for accurate diagnosis and treatment.");
             return response;
         } catch (Exception e) {
-            log.error("Error parsing Gemini response: {}", e.getMessage(), e);
-            return buildMockResponse(request);
+            log.error("Error parsing AI response: {}. Original text: {}", e.getMessage(), aiText, e);
+            throw new RuntimeException("Failed to parse AI response: " + e.getMessage(), e);
         }
     }
 

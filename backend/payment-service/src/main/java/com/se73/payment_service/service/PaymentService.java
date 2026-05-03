@@ -1,6 +1,8 @@
 package com.se73.payment_service.service;
 
 import com.se73.payment_service.client.NotificationClient;
+import com.se73.payment_service.config.RabbitMQConfig;
+import com.se73.payment_service.dto.PaymentEventMessage;
 import com.se73.payment_service.dto.PaymentInitiateRequest;
 import com.se73.payment_service.dto.PaymentResponse;
 import com.se73.payment_service.dto.TransactionHistoryResponse;
@@ -11,6 +13,7 @@ import com.se73.payment_service.repository.PaymentTransactionRepository;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,36 +30,35 @@ public class PaymentService {
     private final PaymentTransactionRepository transactionRepository;
     private final StripePaymentService stripePaymentService;
     private final NotificationClient notificationClient;
+    private final RabbitTemplate rabbitTemplate;
 
     @Value("${stripe.publishable-key}")
     private String stripePublishableKey;
 
     public PaymentService(PaymentTransactionRepository transactionRepository,
                          StripePaymentService stripePaymentService,
-                         NotificationClient notificationClient) {
+                         NotificationClient notificationClient,
+                         RabbitTemplate rabbitTemplate) {
         this.transactionRepository = transactionRepository;
         this.stripePaymentService = stripePaymentService;
         this.notificationClient = notificationClient;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
+    // Creates a Stripe PaymentIntent and saves a PENDING transaction; returns the clientSecret for the frontend
     @Transactional
     public PaymentResponse initiatePayment(PaymentInitiateRequest request) {
         try {
-            log.info("Initiating payment for appointment: {}, amount: {}", 
+            log.info("Initiating payment for appointment: {}, amount: {}",
                     request.getAppointmentId(), request.getAmount());
 
-            // 1. Create transaction record in DB
             PaymentTransaction transaction = createTransaction(request);
-
-            // 2. Create Stripe Payment Intent
             PaymentIntent paymentIntent = stripePaymentService.createPaymentIntent(request, transaction);
 
-            // 3. Update transaction with gateway payment ID
             transaction.setGatewayPaymentId(paymentIntent.getId());
             transaction.setStatus(PaymentTransaction.TransactionStatus.PENDING);
             transactionRepository.save(transaction);
 
-            // 4. Build response with client secret for frontend
             return buildPaymentResponse(transaction, paymentIntent);
 
         } catch (StripeException e) {
@@ -65,13 +67,23 @@ public class PaymentService {
         }
     }
 
+    // Convenience overload — used internally when appointment details are not available
     @Transactional
     public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId) {
-        return confirmPayment(transactionIdStr, paymentMethodId, null);
+        return confirmPayment(transactionIdStr, paymentMethodId, null, null, null, null, null);
     }
 
+    // Convenience overload — used when bearer token is available but no appointment details
     @Transactional
     public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId, String bearerToken) {
+        return confirmPayment(transactionIdStr, paymentMethodId, bearerToken, null, null, null, null);
+    }
+
+    // Full overload — verifies the Stripe intent, updates the transaction, fires notification and RabbitMQ event
+    @Transactional
+    public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId, String bearerToken,
+                                          String doctorName, String appointmentMode,
+                                          String hospital, String appointmentDateTime) {
         try {
             log.info("Confirming payment for transaction: {} with method: {}", transactionIdStr, paymentMethodId);
 
@@ -95,7 +107,10 @@ public class PaymentService {
                 transactionRepository.save(transaction);
                 
                 // Fire-and-forget notification to notification-service
-                notificationClient.sendPaymentConfirmed(transaction, bearerToken);
+                notificationClient.sendPaymentConfirmed(transaction, bearerToken, doctorName, appointmentMode, hospital, appointmentDateTime);
+                
+                // Publish payment completed event
+                publishPaymentEvent(transaction.getAppointmentId(), "PAID");
                 
                 // Return response
                 PaymentResponse response = new PaymentResponse();
@@ -123,7 +138,10 @@ public class PaymentService {
                 transactionRepository.save(transaction);
                 
                 // Fire-and-forget notification to notification-service
-                notificationClient.sendPaymentConfirmed(transaction, bearerToken);
+                notificationClient.sendPaymentConfirmed(transaction, bearerToken, doctorName, appointmentMode, hospital, appointmentDateTime);
+
+                // Publish payment completed event
+                publishPaymentEvent(transaction.getAppointmentId(), "PAID");
             } else if ("requires_payment_method".equals(paymentIntent.getStatus())) {
                 throw new PaymentException("Payment method declined or invalid");
             } else if ("requires_action".equals(paymentIntent.getStatus())) {
@@ -149,6 +167,7 @@ public class PaymentService {
         }
     }
 
+    // Looks up a single transaction by its UUID; throws TransactionNotFoundException if missing
     public PaymentResponse getTransaction(UUID transactionId) {
         PaymentTransaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new TransactionNotFoundException(
@@ -202,6 +221,16 @@ public class PaymentService {
         return transactions.stream()
                 .map(this::mapToHistoryResponse)
                 .collect(Collectors.toList());
+    }
+
+    private void publishPaymentEvent(UUID appointmentId, String status) {
+        try {
+            PaymentEventMessage message = new PaymentEventMessage(appointmentId, status);
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY, message);
+            log.info("Published payment event for appointment: {} with status: {}", appointmentId, status);
+        } catch (Exception e) {
+            log.error("Failed to publish payment event for appointment: {}", appointmentId, e);
+        }
     }
 
     // Helper methods
