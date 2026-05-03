@@ -24,6 +24,7 @@ public class MedicalReport {
 
     @NotBlank
     @Column(nullable = false)
+    // Stores the object location; despite the field name, the current implementation uses S3.
     private String minioPath; // s3://bucket/path/to/file
 
     private String fileType; // pdf, jpg, png, etc.

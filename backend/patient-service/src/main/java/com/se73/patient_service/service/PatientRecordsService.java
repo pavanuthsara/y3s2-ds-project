@@ -33,11 +33,13 @@ public class PatientRecordsService {
     }
 
     public List<PatientAppointmentHistoryResponse> getPatientHistory(PatientProfile patient) {
+        // Appointment-service indexes patient appointments by username, not by patient profile id.
         String url = appointmentServiceBaseUrl + "/patient/" + patient.getUsername();
         return getList(url, new ParameterizedTypeReference<>() {}, "appointment history");
     }
 
     public List<PatientPrescriptionResponse> getPatientPrescriptions(PatientProfile patient) {
+        // Doctor-service also exposes prescriptions under the patient's username.
         String url = prescriptionServiceBaseUrl + "/patient/" + patient.getUsername();
         return getList(url, new ParameterizedTypeReference<>() {}, "prescriptions");
     }
