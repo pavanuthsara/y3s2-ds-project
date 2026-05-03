@@ -15,6 +15,7 @@ export const PaymentModal = ({
   onClose,
   onSuccess,
   title = 'Payment',
+  appointmentDetails,
 }) => {
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -32,7 +33,9 @@ export const PaymentModal = ({
 
   const handleSuccess = (result) => {
     onSuccess?.(result);
-    onClose?.();
+    if (result?.completed) {
+      onClose?.();
+    }
   };
 
   return createPortal(
@@ -59,6 +62,7 @@ export const PaymentModal = ({
             currency={currency}
             onSuccess={handleSuccess}
             onCancel={onClose}
+            appointmentDetails={appointmentDetails}
           />
         </div>
       </div>

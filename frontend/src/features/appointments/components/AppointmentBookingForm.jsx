@@ -135,7 +135,8 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
     }
   };
 
-  const handlePaymentSuccess = async () => {
+  const handlePaymentSuccess = async (result) => {
+    if (!result?.completed) return;
     setSuccess(true);
     setShowPaymentModal(false);
     setTimeout(() => {
@@ -276,6 +277,12 @@ const AppointmentBookingForm = ({ onSubmit, isLoading = false, patientIdFromSess
         currency="LKR"
         onClose={() => setShowPaymentModal(false)}
         onSuccess={handlePaymentSuccess}
+        appointmentDetails={{
+          doctorName: selectedSlot?.doctorName || formData.doctorUsername,
+          appointmentMode: formData.appointmentMode,
+          hospital: formData.hospital,
+          appointmentDateTime: formData.appointmentDateTime,
+        }}
       />
     </div>
   );

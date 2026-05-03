@@ -121,7 +121,6 @@ public class PatientProxyController {
     ) {
         try {
             HttpHeaders headers = createHeaders(authorization);
-            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             body.add("file", new ByteArrayResource(file.getBytes()) {

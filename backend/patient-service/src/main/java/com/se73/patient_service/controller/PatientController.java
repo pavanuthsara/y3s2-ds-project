@@ -19,6 +19,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.core.io.ByteArrayResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +32,7 @@ import java.util.UUID;
 @RequestMapping("/api/patients")
 @CrossOrigin(origins = "*")
 public class PatientController {
+    private static final Logger logger = LoggerFactory.getLogger(PatientController.class);
 
     private final PatientProfileService patientProfileService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -147,6 +150,7 @@ public class PatientController {
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(e.getMessage()));
         } catch (RuntimeException e) {
+            logger.error("Error uploading medical report for patient {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
         }
     }

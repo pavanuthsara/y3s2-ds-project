@@ -34,6 +34,7 @@ public class NotificationService {
     private final ObjectMapper objectMapper;
     private final List<ChannelDispatcher> dispatchers;
 
+    // Validates the request, resolves patient contact info, builds the notification record, and fans out to all channels
     @Transactional
     public Notification handlePaymentConfirmed(PaymentConfirmedNotificationRequest req, String bearerToken) {
         auditService.record("transaction", req.getTransactionId(),
@@ -62,6 +63,10 @@ public class NotificationService {
         payload.put("currency", req.getCurrency());
         payload.put("paymentGateway", req.getPaymentGateway());
         payload.put("patientName", contact != null ? contact.getDisplayName() : req.getPatientName());
+        if (req.getDoctorName() != null) payload.put("doctorName", req.getDoctorName());
+        if (req.getAppointmentMode() != null) payload.put("appointmentMode", req.getAppointmentMode());
+        if (req.getHospital() != null) payload.put("hospital", req.getHospital());
+        if (req.getAppointmentDateTime() != null) payload.put("appointmentDateTime", req.getAppointmentDateTime());
 
         Notification notification = Notification.builder()
                 .type(Notification.Type.PAYMENT_CONFIRMED)
@@ -85,6 +90,7 @@ public class NotificationService {
     /**
      * Fan-out to every configured channel in parallel and aggregate the results.
      */
+    // Dispatches the notification to every configured channel in parallel and aggregates delivery results
     private Notification dispatchAll(Notification notification) {
         UUID notificationId = notification.getId();
 
@@ -152,6 +158,7 @@ public class NotificationService {
         }
     }
 
+    // Prefers email from the inbound request; falls back to a patient-service lookup via the forwarded JWT
     private PatientContactInfo resolveContact(PaymentConfirmedNotificationRequest req, String bearerToken) {
         // Prefer contact info from the inbound request.
         if (req.getPatientEmail() != null && !req.getPatientEmail().isBlank()) {

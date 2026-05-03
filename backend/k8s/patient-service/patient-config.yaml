@@ -20,9 +20,9 @@ metadata:
   name: patient-secret
   namespace: default
 type: Opaque
-data:
+stringData:
   # Values are base64 encoded
   DB_PASSWORD: cG9zdGdyZXM= # postgres
   APP_JWT_SECRET: bXlTZWNyZXRLZXlGb3JKd3RUb2tlbkdlbmVyYXRpb25BbmRWYWxpZGF0aW9uUHVycG9zZXNPbmx5MTIzNDU2Nzg5
-  AWS_ACCESS_KEY_ID: QUtJQVhQUDRENTZFO0NRTDZaQUU1 # base64 encoded
-  AWS_SECRET_ACCESS_KEY: UkRQU2dUSEREdlJGZHg2SHNXM0ZsbFVZdDB4eWtscmtZM2swRzZlSw== # base64 encoded
+  AWS_ACCESS_KEY_ID: AKIAXPP4E6ECQL6Z5AE5 # base64 encoded
+  AWS_SECRET_ACCESS_KEY: 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
