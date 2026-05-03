@@ -4,7 +4,7 @@ metadata:
   name: notification-config
   namespace: default
 data:
-  DB_HOST: notification-db-service
+  DB_HOST: shared-postgres-service
   DB_PORT: "5432"
   DB_NAME: notification_service_db
   DB_USERNAME: postgres
@@ -23,5 +23,10 @@ data:
   # Values are base64 encoded
   DB_PASSWORD: cG9zdGdyZXM= # postgres
   JWT_SECRET: bXlTZWNyZXRLZXlGb3JKd3RUb2tlbkdlbmVyYXRpb25BbmRWYWxpZGF0aW9uUHVycG9zZXNPbmx5MTIzNDU2Nzg5
-  MAIL_USERNAME: "" # Provide base64 encoded username here
-  MAIL_PASSWORD: "" # Provide base64 encoded password here
+  # REQUIRED: Provide base64-encoded Gmail credentials before deploying.
+  # Use a Gmail App Password (not your login password).
+  # Generate App Password: https://myaccount.google.com/apppasswords
+  # Encode: echo -n "your@gmail.com" | base64
+  MAIL_USERNAME: "" # e.g. eW91ckBnbWFpbC5jb20=
+  # Encode: echo -n "your-app-password" | base64
+  MAIL_PASSWORD: "" # e.g. eW91ci1hcHAtcGFzc3dvcmQ=

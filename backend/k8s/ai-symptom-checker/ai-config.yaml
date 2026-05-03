@@ -14,5 +14,8 @@ metadata:
   namespace: default
 type: Opaque
 data:
-  # Values are base64 encoded
-  GEMINI_API_KEY: "" # Provide base64 encoded key here
+  # Provide your real base64-encoded Gemini API key below.
+  # Generate it with: echo -n "your-api-key" | base64
+  # Leave as empty string only if SYMPTOM_MOCK_ENABLED is "true" AND the service
+  # does NOT validate the key at startup (check your service code).
+  GEMINI_API_KEY: ""

@@ -16,6 +16,5 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8087
 
-ENV GEMINI_API_KEY=${GEMINI_API_KEY}
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -4,7 +4,7 @@ metadata:
   name: payment-config
   namespace: default
 data:
-  DB_HOST: payment-db-service
+  DB_HOST: shared-postgres-service
   DB_PORT: "5432"
   DB_NAME: payment_service_db
   DB_USERNAME: postgres
