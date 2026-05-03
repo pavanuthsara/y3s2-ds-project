@@ -29,11 +29,13 @@ public class NotificationClient {
     @Value("${notification.service.url:http://localhost:8088/api/notifications}")
     private String notificationServiceUrl;
 
+    // Overload used when appointment details are not available
     @Async
     public void sendPaymentConfirmed(PaymentTransaction tx, String bearerToken) {
         sendPaymentConfirmed(tx, bearerToken, null, null, null, null);
     }
 
+    // Sends payment-confirmed event to notification-service; appointment details are optional receipt fields
     @Async
     public void sendPaymentConfirmed(PaymentTransaction tx, String bearerToken,
                                      String doctorName, String appointmentMode,
@@ -47,6 +49,7 @@ public class NotificationClient {
             body.put("currency", tx.getCurrency());
             body.put("paymentGateway", tx.getPaymentGateway() != null ? tx.getPaymentGateway().name() : "STRIPE");
             body.put("patientEmail", tx.getPatientEmail());
+            // Include optional appointment fields only when provided
             if (doctorName != null) body.put("doctorName", doctorName);
             if (appointmentMode != null) body.put("appointmentMode", appointmentMode);
             if (hospital != null) body.put("hospital", hospital);

@@ -34,6 +34,7 @@ public class NotificationService {
     private final ObjectMapper objectMapper;
     private final List<ChannelDispatcher> dispatchers;
 
+    // Validates the request, resolves patient contact info, builds the notification record, and fans out to all channels
     @Transactional
     public Notification handlePaymentConfirmed(PaymentConfirmedNotificationRequest req, String bearerToken) {
         auditService.record("transaction", req.getTransactionId(),
@@ -89,6 +90,7 @@ public class NotificationService {
     /**
      * Fan-out to every configured channel in parallel and aggregate the results.
      */
+    // Dispatches the notification to every configured channel in parallel and aggregates delivery results
     private Notification dispatchAll(Notification notification) {
         UUID notificationId = notification.getId();
 
@@ -156,6 +158,7 @@ public class NotificationService {
         }
     }
 
+    // Prefers email from the inbound request; falls back to a patient-service lookup via the forwarded JWT
     private PatientContactInfo resolveContact(PaymentConfirmedNotificationRequest req, String bearerToken) {
         // Prefer contact info from the inbound request.
         if (req.getPatientEmail() != null && !req.getPatientEmail().isBlank()) {

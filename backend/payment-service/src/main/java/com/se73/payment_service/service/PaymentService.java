@@ -45,24 +45,20 @@ public class PaymentService {
         this.rabbitTemplate = rabbitTemplate;
     }
 
+    // Creates a Stripe PaymentIntent and saves a PENDING transaction; returns the clientSecret for the frontend
     @Transactional
     public PaymentResponse initiatePayment(PaymentInitiateRequest request) {
         try {
-            log.info("Initiating payment for appointment: {}, amount: {}", 
+            log.info("Initiating payment for appointment: {}, amount: {}",
                     request.getAppointmentId(), request.getAmount());
 
-            // 1. Create transaction record in DB
             PaymentTransaction transaction = createTransaction(request);
-
-            // 2. Create Stripe Payment Intent
             PaymentIntent paymentIntent = stripePaymentService.createPaymentIntent(request, transaction);
 
-            // 3. Update transaction with gateway payment ID
             transaction.setGatewayPaymentId(paymentIntent.getId());
             transaction.setStatus(PaymentTransaction.TransactionStatus.PENDING);
             transactionRepository.save(transaction);
 
-            // 4. Build response with client secret for frontend
             return buildPaymentResponse(transaction, paymentIntent);
 
         } catch (StripeException e) {
@@ -71,16 +67,19 @@ public class PaymentService {
         }
     }
 
+    // Convenience overload — used internally when appointment details are not available
     @Transactional
     public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId) {
         return confirmPayment(transactionIdStr, paymentMethodId, null, null, null, null, null);
     }
 
+    // Convenience overload — used when bearer token is available but no appointment details
     @Transactional
     public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId, String bearerToken) {
         return confirmPayment(transactionIdStr, paymentMethodId, bearerToken, null, null, null, null);
     }
 
+    // Full overload — verifies the Stripe intent, updates the transaction, fires notification and RabbitMQ event
     @Transactional
     public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId, String bearerToken,
                                           String doctorName, String appointmentMode,
@@ -168,6 +167,7 @@ public class PaymentService {
         }
     }
 
+    // Looks up a single transaction by its UUID; throws TransactionNotFoundException if missing
     public PaymentResponse getTransaction(UUID transactionId) {
         PaymentTransaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new TransactionNotFoundException(

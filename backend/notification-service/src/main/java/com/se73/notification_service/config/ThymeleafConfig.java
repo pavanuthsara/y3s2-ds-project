@@ -10,6 +10,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 @Configuration
 public class ThymeleafConfig {
 
+    // Uses ClassLoaderTemplateResolver so templates resolve correctly inside the fat JAR
     @Bean
     public TemplateEngine emailTemplateEngine() {
         ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();

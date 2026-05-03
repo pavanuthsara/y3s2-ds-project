@@ -24,6 +24,7 @@ public class EmailTemplateService {
         this.objectMapper = objectMapper;
     }
 
+    // Renders the Thymeleaf HTML template for the given notification type; falls back to plain bodyText on error
     public String renderForNotification(Notification notification) {
         String templateName = templateFor(notification.getType());
         Context ctx = new Context();
