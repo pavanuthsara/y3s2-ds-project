@@ -31,6 +31,13 @@ public class NotificationClient {
 
     @Async
     public void sendPaymentConfirmed(PaymentTransaction tx, String bearerToken) {
+        sendPaymentConfirmed(tx, bearerToken, null, null, null, null);
+    }
+
+    @Async
+    public void sendPaymentConfirmed(PaymentTransaction tx, String bearerToken,
+                                     String doctorName, String appointmentMode,
+                                     String hospital, String appointmentDateTime) {
         try {
             Map<String, Object> body = new HashMap<>();
             body.put("transactionId", tx.getId() != null ? tx.getId().toString() : null);
@@ -40,6 +47,10 @@ public class NotificationClient {
             body.put("currency", tx.getCurrency());
             body.put("paymentGateway", tx.getPaymentGateway() != null ? tx.getPaymentGateway().name() : "STRIPE");
             body.put("patientEmail", tx.getPatientEmail());
+            if (doctorName != null) body.put("doctorName", doctorName);
+            if (appointmentMode != null) body.put("appointmentMode", appointmentMode);
+            if (hospital != null) body.put("hospital", hospital);
+            if (appointmentDateTime != null) body.put("appointmentDateTime", appointmentDateTime);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);

@@ -73,11 +73,18 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId) {
-        return confirmPayment(transactionIdStr, paymentMethodId, null);
+        return confirmPayment(transactionIdStr, paymentMethodId, null, null, null, null, null);
     }
 
     @Transactional
     public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId, String bearerToken) {
+        return confirmPayment(transactionIdStr, paymentMethodId, bearerToken, null, null, null, null);
+    }
+
+    @Transactional
+    public PaymentResponse confirmPayment(String transactionIdStr, String paymentMethodId, String bearerToken,
+                                          String doctorName, String appointmentMode,
+                                          String hospital, String appointmentDateTime) {
         try {
             log.info("Confirming payment for transaction: {} with method: {}", transactionIdStr, paymentMethodId);
 
@@ -101,7 +108,7 @@ public class PaymentService {
                 transactionRepository.save(transaction);
                 
                 // Fire-and-forget notification to notification-service
-                notificationClient.sendPaymentConfirmed(transaction, bearerToken);
+                notificationClient.sendPaymentConfirmed(transaction, bearerToken, doctorName, appointmentMode, hospital, appointmentDateTime);
                 
                 // Publish payment completed event
                 publishPaymentEvent(transaction.getAppointmentId(), "PAID");
@@ -132,7 +139,7 @@ public class PaymentService {
                 transactionRepository.save(transaction);
                 
                 // Fire-and-forget notification to notification-service
-                notificationClient.sendPaymentConfirmed(transaction, bearerToken);
+                notificationClient.sendPaymentConfirmed(transaction, bearerToken, doctorName, appointmentMode, hospital, appointmentDateTime);
 
                 // Publish payment completed event
                 publishPaymentEvent(transaction.getAppointmentId(), "PAID");

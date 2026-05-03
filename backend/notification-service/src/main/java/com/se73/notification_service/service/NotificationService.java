@@ -62,6 +62,10 @@ public class NotificationService {
         payload.put("currency", req.getCurrency());
         payload.put("paymentGateway", req.getPaymentGateway());
         payload.put("patientName", contact != null ? contact.getDisplayName() : req.getPatientName());
+        if (req.getDoctorName() != null) payload.put("doctorName", req.getDoctorName());
+        if (req.getAppointmentMode() != null) payload.put("appointmentMode", req.getAppointmentMode());
+        if (req.getHospital() != null) payload.put("hospital", req.getHospital());
+        if (req.getAppointmentDateTime() != null) payload.put("appointmentDateTime", req.getAppointmentDateTime());
 
         Notification notification = Notification.builder()
                 .type(Notification.Type.PAYMENT_CONFIRMED)

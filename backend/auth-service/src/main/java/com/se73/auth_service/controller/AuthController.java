@@ -32,7 +32,7 @@ public class AuthController {
         // If userService throws a RuntimeException (e.g., "User already exists"),
         // the GlobalExceptionHandler handles it automatically.
         User user = userService.registerUser(request);
-        String token = jwtTokenProvider.generateTokenFromUsername(user.getUsername());
+        String token = jwtTokenProvider.generateTokenFromUser(user);
         AuthResponse response = new AuthResponse(token, user.getUsername(), user.getEmail(), user.getRole().name());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

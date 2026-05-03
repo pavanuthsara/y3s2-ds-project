@@ -3,8 +3,8 @@ package com.se73.notification_service.service;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import com.se73.notification_service.entity.Notification;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -12,12 +12,17 @@ import org.thymeleaf.context.Context;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class EmailTemplateService {
 
     private final TemplateEngine templateEngine;
     private final ObjectMapper objectMapper;
+
+    public EmailTemplateService(@Qualifier("emailTemplateEngine") TemplateEngine templateEngine,
+                                ObjectMapper objectMapper) {
+        this.templateEngine = templateEngine;
+        this.objectMapper = objectMapper;
+    }
 
     public String renderForNotification(Notification notification) {
         String templateName = templateFor(notification.getType());

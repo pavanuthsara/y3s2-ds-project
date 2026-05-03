@@ -62,7 +62,9 @@ public class PaymentController {
             log.info("Payment confirmation request received for transaction: {}", request.getTransactionId());
 
             PaymentResponse response = paymentService.confirmPayment(
-                    request.getTransactionId(), request.getPaymentMethodId(), authorization);
+                    request.getTransactionId(), request.getPaymentMethodId(), authorization,
+                    request.getDoctorName(), request.getAppointmentMode(),
+                    request.getHospital(), request.getAppointmentDateTime());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
