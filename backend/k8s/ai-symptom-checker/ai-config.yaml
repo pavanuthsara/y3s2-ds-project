@@ -5,7 +5,7 @@ metadata:
   namespace: default
 data:
   GEMINI_MODEL: gemini-2.5-flash
-  SYMPTOM_MOCK_ENABLED: "true"
+  SYMPTOM_MOCK_ENABLED: "false"
 ---
 apiVersion: v1
 kind: Secret
@@ -13,9 +13,9 @@ metadata:
   name: ai-symptom-secret
   namespace: default
 type: Opaque
-data:
+stringData:
   # Provide your real base64-encoded Gemini API key below.
   # Generate it with: echo -n "your-api-key" | base64
   # Leave as empty string only if SYMPTOM_MOCK_ENABLED is "true" AND the service
   # does NOT validate the key at startup (check your service code).
-  GEMINI_API_KEY: ""
+  GEMINI_API_KEY: AIzaSyDdMTa7mkcnHs0bmaJff8bVxpel4ThyFQs
