@@ -36,6 +36,13 @@ spec:
             configMapKeyRef:
               name: ai-symptom-config
               key: SYMPTOM_MOCK_ENABLED
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
         livenessProbe:
           httpGet:
             path: /api/symptoms/health

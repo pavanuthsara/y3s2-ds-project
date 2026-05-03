@@ -4,7 +4,7 @@ metadata:
   name: auth-config
   namespace: default
 data:
-  DB_HOST: auth-db-service
+  DB_HOST: shared-postgres-service
   DB_PORT: "5432"
   DB_NAME: authdb
   DB_USERNAME: postgres
