@@ -15,6 +15,7 @@ public class PatientProfile {
 
     @NotBlank
     @Column(nullable = false, unique = true)
+    // Links the patient profile to the authenticated username from auth-service.
     private String username;
 
     @NotBlank

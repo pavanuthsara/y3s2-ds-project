@@ -16,6 +16,7 @@ public class PatientProfileService {
     }
 
     public PatientProfile createProfile(String username, CreatePatientProfileRequest request) {
+        // Each authenticated user can have only one patient profile.
         if (patientProfileRepository.existsByUsername(username)) {
             throw new RuntimeException("Patient profile already exists");
         }
@@ -37,6 +38,7 @@ public class PatientProfileService {
     }
 
     public PatientProfile updateProfile(String username, UpdatePatientProfileRequest request) {
+        // Updates are always applied to the profile owned by the current username.
         PatientProfile patientProfile = getProfile(username);
         patientProfile.setFirstName(request.getFirstName());
         patientProfile.setLastName(request.getLastName());
